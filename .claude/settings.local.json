@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp *)",
+      "Bash(claude tools *)",
+      "Bash(mysql -h 8.148.85.137 -P 3306 -u Ruiui -p123456 -e \"SHOW DATABASES;\")"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "MySQL"
+  ]
+}
