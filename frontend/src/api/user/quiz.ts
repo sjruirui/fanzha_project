@@ -3,11 +3,11 @@ import type { QuizLevel, Question, QuizResult } from '@/types'
 
 export const quizApi = {
   getLevels() {
-    return request.get<QuizLevel[]>('/user/quiz/levels')
+    return request.get<{ levels: QuizLevel[] }>('/user/quiz/levels').then(res => res.levels || [])
   },
 
   getQuestions(levelId: number) {
-    return request.get<Question[]>(`/user/quiz/levels/${levelId}/questions`)
+    return request.get<{ questions: Question[] }>(`/user/quiz/levels/${levelId}/questions`).then(res => res.questions || [])
   },
 
   submit(levelId: number, answers: { questionId: number; answer: string }[]) {

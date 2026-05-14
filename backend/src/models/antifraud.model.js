@@ -25,7 +25,7 @@ class AntifraudModel {
     const limit = parseInt(pageSize) || 10;
     const offset = (parseInt(page) - 1) * limit || 0;
 
-    let sql = 'SELECT id, title, summary, cover, type, tags, author, views, status, created_at, published_at FROM antifraud WHERE 1=1';
+    let sql = 'SELECT id, title, summary, cover, content, type, tags, author, views, status, created_at, published_at FROM antifraud WHERE 1=1';
     const params = [];
 
     if (type) {
@@ -107,9 +107,10 @@ class AntifraudModel {
 
   // Get related news
   static async getRelated(id, type, limit = 5) {
+    const limitVal = parseInt(limit) || 5;
     const [rows] = await db.execute(
-      'SELECT id, title, summary, cover, type, views, created_at FROM antifraud WHERE type = ? AND id != ? AND status = 1 ORDER BY created_at DESC LIMIT ?',
-      [type, id, limit]
+      `SELECT id, title, summary, cover, type, views, created_at FROM antifraud WHERE type = ? AND id != ? AND status = 1 ORDER BY created_at DESC LIMIT ${limitVal}`,
+      [type, id]
     );
     return rows;
   }
@@ -121,6 +122,12 @@ class AntifraudModel {
       `SELECT id, title, summary, cover, type, views, created_at FROM antifraud WHERE status = 1 ORDER BY created_at DESC LIMIT ${limitVal}`
     );
     return rows;
+  }
+
+  // Get count
+  static async getCount() {
+    const [rows] = await db.execute('SELECT COUNT(*) as count FROM antifraud');
+    return rows[0].count;
   }
 }
 

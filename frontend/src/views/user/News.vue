@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Search } from '@element-plus/icons-vue'
 import { newsApi } from '@/api/user/news'
 import type { News } from '@/types'
 

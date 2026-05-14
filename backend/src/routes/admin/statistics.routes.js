@@ -4,6 +4,8 @@ const UserModel = require('../../models/user.model');
 const { BlogModel } = require('../../models/community.model');
 const { ActivityModel } = require('../../models/activity.model');
 const ReportModel = require('../../models/report.model');
+const AntifraudModel = require('../../models/antifraud.model');
+const KnowledgeModel = require('../../models/knowledge.model');
 const { authAdmin } = require('../../middleware/auth.middleware');
 
 /**
@@ -13,12 +15,14 @@ const { authAdmin } = require('../../middleware/auth.middleware');
  */
 router.get('/', authAdmin, async (req, res) => {
   try {
-    const [userCount, postCount, activityCount, reportCount, pendingReportCount] = await Promise.all([
+    const [userCount, postCount, activityCount, reportCount, pendingReportCount, newsCount, knowledgeCount] = await Promise.all([
       UserModel.getCount(),
       BlogModel.getCount(),
       ActivityModel.getCount(),
       ReportModel.getCount(),
-      ReportModel.getPendingCount()
+      ReportModel.getPendingCount(),
+      AntifraudModel.getCount(),
+      KnowledgeModel.getCount()
     ]);
 
     // Get trend data for last 7 days using separate queries
@@ -64,6 +68,8 @@ router.get('/', authAdmin, async (req, res) => {
         activityCount,
         reportCount,
         pendingReportCount,
+        newsCount,
+        knowledgeCount,
         trendData
       }
     });

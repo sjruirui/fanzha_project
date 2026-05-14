@@ -16,7 +16,18 @@ router.get('/', authAdmin, async (req, res) => {
 
     const result = await NoticeModel.findAll({ page, pageSize, status });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform to camelCase
+    const list = result.list.map(item => ({
+      id: item.id,
+      title: item.title,
+      content: item.content,
+      status: item.status,
+      createdAt: item.created_at,
+      publishedAt: item.published_at,
+      publisherName: item.publisher_name
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get notices error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

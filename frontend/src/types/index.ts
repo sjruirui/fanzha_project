@@ -46,6 +46,7 @@ export interface News {
   tags: string
   author: string
   views: number
+  status: number
   publishedAt: string
   createdAt: string
 }
@@ -203,6 +204,15 @@ export interface Banner {
   image: string
   link: string
   sortOrder: number
+}
+
+// Notice Types
+export interface Notice {
+  id: number
+  title: string
+  content: string
+  publishedAt: string
+  publisherName?: string
 }
 
 // Interact Types

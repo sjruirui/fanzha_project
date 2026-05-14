@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { Plus, Search, View, ChatDotRound, Star } from '@element-plus/icons-vue'
 import { communityApi } from '@/api/user/community'
 import type { Post, Category } from '@/types'
 

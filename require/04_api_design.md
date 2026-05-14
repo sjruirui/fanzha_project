@@ -60,11 +60,11 @@
 
 #### 获取资讯详情
 - **GET** `/api/user/news/:id`
-- **响应**: `{ news_detail }`
+- **响应**: `{ id, title, summary, cover, content, type, tags, author, views, status, createdAt, publishedAt }`
 
 #### 获取相关资讯
 - **GET** `/api/user/news/:id/related`
-- **响应**: `{ related_news[] }`
+- **响应**: `[{ id, title, summary, cover, type, views, createdAt }]`
 
 ### 4. 反诈知识库模块
 
@@ -75,32 +75,37 @@
 
 #### 获取知识详情
 - **GET** `/api/user/knowledge/:id`
-- **响应**: `{ knowledge_detail }`
+- **响应**: `{ id, title, summary, cover, content, type, targetGroup, tags, views, status, createdAt }`
 
 #### 获取相关知识
 - **GET** `/api/user/knowledge/:id/related`
-- **响应**: `{ related_knowledge[] }`
+- **响应**: `[{ id, title, summary, cover, type, targetGroup, views, createdAt }]`
 
 ### 5. 反诈课堂模块
 
 #### 获取章节列表
 - **GET** `/api/user/classroom/chapters`
-- **响应**: `{ chapters[] }`
+- **响应**: `{ chapters: [{ id, title, summary, cover, sortOrder, status, lessonCount, createdAt }] }`
 
 #### 获取章节课时列表
 - **GET** `/api/user/classroom/chapters/:id/lessons`
-- **响应**: `{ lessons[] }`
+- **响应**: `{ lessons: [{ id, chapterId, title, summary, cover, videoUrl, duration, sortOrder, views, createdAt }], chapter }`
 
 #### 获取课时详情
 - **GET** `/api/user/classroom/lessons/:id`
-- **响应**: `{ lesson_detail }`
+- **响应**: `{ id, chapterId, title, summary, cover, videoUrl, duration, sortOrder, views, createdAt }`
 
 ### 6. 交流互动模块
+
+#### 获取帖子分类
+- **GET** `/api/user/community/categories`
+- **响应**: `{ categories[] }`
 
 #### 获取帖子列表
 - **GET** `/api/user/community/posts`
 - **参数**: `page, pageSize, categoryId, keyword`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, summary, cover, tags, views, likes, comments, collects, status, createdAt, categoryName, author: { nickname, avatar }`
 
 #### 获取帖子详情
 - **GET** `/api/user/community/posts/:id`
@@ -120,16 +125,13 @@
 - **DELETE** `/api/user/community/posts/:id`
 - **响应**: `{ success }`
 
-#### 获取帖子分类
-- **GET** `/api/user/community/categories`
-- **响应**: `{ categories[] }`
-
 ### 7. 活动中心模块
 
 #### 获取活动列表
 - **GET** `/api/user/activities`
-- **参数**: `page, pageSize, form, keyword`
+- **参数**: `page, pageSize, form(online/offline), keyword`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, summary, cover, organizer, form(online/offline), address, startTime, endTime, views, likes, comments, collects, signs, status, createdAt`
 
 #### 获取活动详情
 - **GET** `/api/user/activities/:id`
@@ -151,20 +153,20 @@
 
 #### 获取关卡列表
 - **GET** `/api/user/quiz/levels`
-- **响应**: `{ levels[] }`
+- **响应**: `{ levels: [{ id, title, description, difficulty, sortOrder, questionCount }] }`
 
 #### 获取关卡题目
 - **GET** `/api/user/quiz/levels/:id/questions`
-- **响应**: `{ questions[] }`
+- **响应**: `{ quiz, questions: [{ id, quizId, title, type(single/multiple), optionA, optionB, optionC, optionD, sortOrder }] }`
 
 #### 提交答题结果
 - **POST** `/api/user/quiz/levels/:id/submit`
-- **请求体**: `{ answers[] }`
-- **响应**: `{ score, correct_count, passed }`
+- **请求体**: `{ answers: [{ questionId, answer }] }`
+- **响应**: `{ score, correct_count, total_questions, passed, answer_records }`
 
 #### 获取答题记录
 - **GET** `/api/user/quiz/records`
-- **响应**: `{ records[] }`
+- **响应**: `{ list[], total, page, pageSize }`
 
 ### 9. 诈骗举报模块
 
@@ -207,16 +209,19 @@
 - **GET** `/api/user/profile/activities`
 - **参数**: `page, pageSize`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, activityId, createdAt, activity: { id, title, cover, form, startTime, endTime, address }`
 
 #### 获取我的点赞
 - **GET** `/api/user/profile/likes`
-- **参数**: `page, pageSize, targetType`
+- **参数**: `page, pageSize, targetType(post/activity/news/knowledge)`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, targetType, targetId, targetTitle, targetCover, createdAt`
 
 #### 获取我的收藏
 - **GET** `/api/user/profile/collects`
-- **参数**: `page, pageSize, targetType`
+- **参数**: `page, pageSize, targetType(post/activity/news/knowledge)`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, targetType, targetId, targetTitle, targetCover, createdAt`
 
 #### 获取我的评论
 - **GET** `/api/user/profile/comments`
@@ -233,6 +238,7 @@
 #### 点赞
 - **POST** `/api/user/interact/like`
 - **请求体**: `{ targetType, targetId }`
+- **说明**: targetType: 1-帖子, 2-活动, 3-资讯, 4-知识
 - **响应**: `{ success }`
 
 #### 取消点赞
@@ -261,6 +267,7 @@
 - **GET** `/api/user/comments`
 - **参数**: `targetType, targetId, page, pageSize`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, userId, targetType, targetId, parentId, replyToUserId, replyToUsername, content, createdAt, user: { id, nickname, avatar }, replies[]`
 
 #### 发表评论
 - **POST** `/api/user/comments`
@@ -276,6 +283,7 @@
 #### 创建会话
 - **POST** `/api/user/ai/session`
 - **请求体**: `{ mode, scenario }`
+- **说明**: mode: 'chat'-智能问答, 'scenario'-情景模拟; scenario: 'gongjia'-冒充公检法, 'shuadan'-刷单返利, 'shazhu'-杀猪盘, 'wangdai'-虚假网贷
 - **响应**: `{ session_id }`
 
 #### 发送消息（SSE流式响应）
@@ -290,6 +298,16 @@
 #### 清空会话
 - **DELETE** `/api/user/ai/session/:sessionId`
 - **响应**: `{ success }`
+
+### 14. 公告模块
+
+#### 获取公告列表
+- **GET** `/api/user/notice/list`
+- **响应**: `{ list: [{ id, title, content, publishedAt }] }`
+
+#### 获取公告详情
+- **GET** `/api/user/notice/:id`
+- **响应**: `{ id, title, content, publishedAt, publisherName }`
 
 ---
 
@@ -315,7 +333,8 @@
 
 #### 获取统计数据
 - **GET** `/api/admin/statistics`
-- **响应**: `{ userCount, postCount, activityCount, reportCount, trendData }`
+- **响应**: `{ userCount, postCount, activityCount, reportCount, pendingReportCount, newsCount, knowledgeCount, trendData }`
+- **trendData**: `[{ date, new_users, new_posts, new_reports }]` (最近7天)
 
 ### 3. 用户管理模块
 
@@ -353,6 +372,7 @@
 #### 新增管理员
 - **POST** `/api/admin/admins`
 - **请求体**: `{ username, password, nickname, phone, email, role }`
+- **说明**: role: 0-超级管理员, 1-普通管理员
 - **响应**: `{ admin_id }`
 
 #### 编辑管理员
@@ -370,6 +390,7 @@
 - **GET** `/api/admin/news`
 - **参数**: `page, pageSize, type, status, keyword`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, summary, cover, content, type, tags, author, views, status, createdAt, publishedAt`
 
 #### 新增资讯
 - **POST** `/api/admin/news`
@@ -396,6 +417,7 @@
 - **GET** `/api/admin/knowledge`
 - **参数**: `page, pageSize, type, targetGroup, status, keyword`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, summary, cover, content, type, targetGroup, tags, views, status, createdAt`
 
 #### 新增知识
 - **POST** `/api/admin/knowledge`
@@ -422,6 +444,7 @@
 - **GET** `/api/admin/classroom/chapters`
 - **参数**: `page, pageSize, status`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, summary, cover, sortOrder, status, lessonCount, createdAt`
 
 #### 新增章节
 - **POST** `/api/admin/classroom/chapters`
@@ -441,6 +464,7 @@
 - **GET** `/api/admin/classroom/lessons`
 - **参数**: `page, pageSize, chapterId, status`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, chapterId, title, summary, cover, videoUrl, duration, sortOrder, status, views, chapterTitle, createdAt`
 
 #### 新增课时
 - **POST** `/api/admin/classroom/lessons`
@@ -462,6 +486,7 @@
 - **GET** `/api/admin/posts`
 - **参数**: `page, pageSize, categoryId, status, keyword`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, summary, cover, content, tags, views, likes, comments, collects, status, createdAt, categoryId, categoryName, userId, author: { id, nickname, avatar }`
 
 #### 编辑帖子
 - **PUT** `/api/admin/posts/:id`
@@ -480,6 +505,7 @@
 #### 审核帖子
 - **PUT** `/api/admin/posts/:id/audit`
 - **请求体**: `{ status }`
+- **说明**: status: 0-待审核, 1-已通过, 2-已拒绝
 - **响应**: `{ success }`
 
 ### 9. 分类管理模块
@@ -506,17 +532,18 @@
 
 #### 获取活动列表
 - **GET** `/api/admin/activities`
-- **参数**: `page, pageSize, form, status, keyword`
+- **参数**: `page, pageSize, form(online/offline), status, keyword`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, summary, cover, content, organizer, form(online/offline), address, startTime, endTime, views, likes, comments, collects, signs, status, createdAt`
 
 #### 新增活动
 - **POST** `/api/admin/activities`
-- **请求体**: `{ title, summary, cover, content, organizer, form, address, startTime, endTime, status }`
+- **请求体**: `{ title, summary, cover, content, organizer, form(online/offline), address, startTime, endTime, status }`
 - **响应**: `{ activity_id }`
 
 #### 编辑活动
 - **PUT** `/api/admin/activities/:id`
-- **请求体**: `{ title, summary, cover, content, organizer, form, address, startTime, endTime, status }`
+- **请求体**: `{ title, summary, cover, content, organizer, form(online/offline), address, startTime, endTime, status }`
 - **响应**: `{ success }`
 
 #### 删除活动
@@ -534,10 +561,7 @@
 - **GET** `/api/admin/activities/:id/signups`
 - **参数**: `page, pageSize`
 - **响应**: `{ list[], total, page, pageSize }`
-
-#### 导出报名数据
-- **GET** `/api/admin/activities/:id/signups/export`
-- **响应**: Excel文件
+- **列表项字段**: `id, activityId, userId, createdAt, user: { id, username, nickname, phone }`
 
 #### 删除报名记录
 - **DELETE** `/api/admin/activities/:id/signups/:signId`
@@ -549,6 +573,7 @@
 - **GET** `/api/admin/quiz/levels`
 - **参数**: `page, pageSize, status`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, description, difficulty, sortOrder, status, questionCount, createdAt`
 
 #### 新增关卡
 - **POST** `/api/admin/quiz/levels`
@@ -568,15 +593,16 @@
 - **GET** `/api/admin/quiz/questions`
 - **参数**: `page, pageSize, quizId`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, quizId, quizTitle, title, type(single/multiple), optionA, optionB, optionC, optionD, answer, explanation, sortOrder`
 
 #### 新增题目
 - **POST** `/api/admin/quiz/questions`
-- **请求体**: `{ quizId, title, type, optionA, optionB, optionC, optionD, answer, explanation, sortOrder }`
+- **请求体**: `{ quizId, title, type(single/multiple), optionA, optionB, optionC, optionD, answer, explanation, sortOrder }`
 - **响应**: `{ question_id }`
 
 #### 编辑题目
 - **PUT** `/api/admin/quiz/questions/:id`
-- **请求体**: `{ quizId, title, type, optionA, optionB, optionC, optionD, answer, explanation, sortOrder }`
+- **请求体**: `{ quizId, title, type(single/multiple), optionA, optionB, optionC, optionD, answer, explanation, sortOrder }`
 - **响应**: `{ success }`
 
 #### 删除题目
@@ -589,14 +615,17 @@
 - **GET** `/api/admin/reports`
 - **参数**: `page, pageSize, type, status`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, type, amount, status, createdAt, handledAt, username, nickname, phone`
 
 #### 获取举报详情
 - **GET** `/api/admin/reports/:id`
 - **响应**: `{ report_detail }`
+- **详情字段**: `id, title, type, amount, description, evidence, status, remark, createdAt, handledAt, userId, username, nickname, phone, email, handlerId, handlerName`
 
 #### 处理举报
 - **PUT** `/api/admin/reports/:id`
 - **请求体**: `{ status, remark }`
+- **说明**: status: 0-待处理, 1-处理中, 2-已处理, 3-已驳回
 - **响应**: `{ success }`
 
 #### 删除举报
@@ -625,6 +654,7 @@
 - **GET** `/api/admin/notices`
 - **参数**: `page, pageSize, status`
 - **响应**: `{ list[], total, page, pageSize }`
+- **列表项字段**: `id, title, content, status, createdAt, publishedAt, publisherName`
 
 #### 新增公告
 - **POST** `/api/admin/notices`
@@ -664,17 +694,48 @@
 
 ## 文件上传 API
 
-### 上传图片
-- **POST** `/api/upload/image`
-- **请求体**: FormData (file)
-- **响应**: `{ url }`
-
-### 上传视频
-- **POST** `/api/upload/video`
-- **请求体**: FormData (file)
-- **响应**: `{ url }`
-
 ### 上传文件
-- **POST** `/api/upload/file`
-- **请求体**: FormData (file)
+- **POST** `/api/upload/:type`
+- **参数**: `type` - 上传类型: `image`, `video`, `file`
+- **请求体**: FormData (file字段)
 - **响应**: `{ url }`
+
+---
+
+## 数据类型说明
+
+### targetType 目标类型
+| 值 | 说明 |
+|----|------|
+| 1 | 帖子 |
+| 2 | 活动 |
+| 3 | 资讯 |
+| 4 | 知识 |
+
+### status 状态值
+| 模块 | 值 | 说明 |
+|------|----|----- |
+| 通用 | 0 | 禁用/待审核/待处理 |
+| 通用 | 1 | 启用/已通过/已发布 |
+| 帖子 | 2 | 已拒绝 |
+| 举报 | 1 | 处理中 |
+| 举报 | 2 | 已处理 |
+| 举报 | 3 | 已驳回 |
+
+### form 活动形式
+| 值 | 说明 |
+|----|------|
+| online | 线上活动 |
+| offline | 线下活动 |
+
+### question type 题目类型
+| 值 | 说明 |
+|----|------|
+| single | 单选题 |
+| multiple | 多选题 |
+
+### admin role 管理员角色
+| 值 | 说明 |
+|----|------|
+| 0 | 超级管理员 |
+| 1 | 普通管理员 |

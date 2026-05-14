@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { View, ChatDotRound } from '@element-plus/icons-vue'
 import { profileApi } from '@/api/user/profile'
 import type { Post } from '@/types'
 import dayjs from 'dayjs'

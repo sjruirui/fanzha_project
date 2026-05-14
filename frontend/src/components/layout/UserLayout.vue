@@ -66,9 +66,9 @@ async function handleLogout() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (userStore.token && !userStore.userInfo) {
-    userStore.getUserInfo()
+    await userStore.getUserInfo()
   }
 })
 </script>

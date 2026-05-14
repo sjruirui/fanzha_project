@@ -14,15 +14,38 @@ router.get('/', async (req, res) => {
     const { page, pageSize } = validatePagination(req.query.page, req.query.pageSize);
     const { form, keyword } = req.query;
 
+    // Convert form filter string to number
+    const formNum = form === 'offline' ? 2 : (form === 'online' ? 1 : '');
+
     const result = await ActivityModel.findAll({
       page,
       pageSize,
-      form,
+      form: formNum,
       status: 1,
       keyword
     });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform field names to camelCase and convert form number to string
+    const list = result.list.map(activity => ({
+      id: activity.id,
+      title: activity.title,
+      summary: activity.summary,
+      cover: activity.cover,
+      organizer: activity.organizer,
+      form: activity.form === 2 ? 'offline' : 'online',
+      address: activity.address,
+      startTime: activity.start_time,
+      endTime: activity.end_time,
+      views: activity.views,
+      likes: activity.likes_count,
+      comments: activity.comments_count,
+      collects: activity.collects_count,
+      signs: activity.signs_count,
+      status: activity.status,
+      createdAt: activity.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get activities error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

@@ -23,7 +23,22 @@ router.get('/', authAdmin, async (req, res) => {
       keyword
     });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform to camelCase
+    const list = result.list.map(item => ({
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      cover: item.cover,
+      content: item.content,
+      type: item.type,
+      targetGroup: item.target_group,
+      tags: item.tags,
+      views: item.views,
+      status: item.status,
+      createdAt: item.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get knowledge error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

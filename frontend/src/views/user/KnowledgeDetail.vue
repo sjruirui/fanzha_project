@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { View, Clock } from '@element-plus/icons-vue'
 import { knowledgeApi } from '@/api/user/knowledge'
 import type { Knowledge } from '@/types'
 import dayjs from 'dayjs'
@@ -11,6 +12,12 @@ const router = useRouter()
 const knowledge = ref<Knowledge | null>(null)
 const relatedList = ref<Knowledge[]>([])
 const loading = ref(true)
+
+function getImageUrl(path: string | undefined): string {
+  if (!path) return '/placeholder.jpg'
+  const normalizedPath = path.replace(/\\/g, '/')
+  return normalizedPath.startsWith('/') ? normalizedPath : '/' + normalizedPath
+}
 
 const typeLabels: Record<string, string> = {
   guide: '防骗指南',
@@ -48,6 +55,11 @@ function formatDate(date: string) {
 function goToKnowledge(id: number) {
   router.push(`/knowledge/${id}`)
 }
+
+// Watch for route param changes to re-fetch data
+watch(() => route.params.id, () => {
+  fetchKnowledge()
+})
 
 onMounted(() => {
   fetchKnowledge()
@@ -115,7 +127,7 @@ onMounted(() => {
               class="related-item"
               @click="goToKnowledge(item.id)"
             >
-              <img :src="item.cover || '/placeholder.jpg'" :alt="item.title" />
+              <img :src="getImageUrl(item.cover)" :alt="item.title" />
               <div class="related-info">
                 <div class="related-title">{{ item.title }}</div>
                 <div class="related-meta">

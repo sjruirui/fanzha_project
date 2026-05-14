@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ChatDotRound, Delete, Close } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useAppStore } from '@/stores/app'
 import { aiApi } from '@/api/user/ai'

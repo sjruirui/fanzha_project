@@ -21,7 +21,21 @@ router.get('/', authAdmin, async (req, res) => {
       status
     });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform field names to camelCase
+    const list = result.list.map(report => ({
+      id: report.id,
+      title: report.title,
+      type: report.type,
+      amount: report.amount,
+      status: report.status,
+      createdAt: report.created_at,
+      handledAt: report.handled_at,
+      username: report.username,
+      nickname: report.nickname,
+      phone: report.phone
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get reports error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -42,7 +56,28 @@ router.get('/:id', authAdmin, async (req, res) => {
       return res.status(404).json({ code: 404, message: '举报不存在', data: null });
     }
 
-    res.json({ code: 200, message: 'success', data: { report_detail: report } });
+    // Transform field names to camelCase
+    const reportDetail = {
+      id: report.id,
+      title: report.title,
+      type: report.type,
+      amount: report.amount,
+      description: report.description,
+      evidence: report.evidence,
+      status: report.status,
+      remark: report.remark,
+      createdAt: report.created_at,
+      handledAt: report.handled_at,
+      userId: report.user_id,
+      username: report.username,
+      nickname: report.nickname,
+      phone: report.phone,
+      email: report.email,
+      handlerId: report.handler_id,
+      handlerName: report.handler_name
+    };
+
+    res.json({ code: 200, message: 'success', data: { report_detail: reportDetail } });
   } catch (error) {
     console.error('Get report detail error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

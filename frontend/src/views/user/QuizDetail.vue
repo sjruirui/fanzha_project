@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowLeft, ArrowRight, CircleCheck, CircleClose } from '@element-plus/icons-vue'
 import { quizApi } from '@/api/user/quiz'
 import type { Question } from '@/types'
 
@@ -10,7 +11,7 @@ const router = useRouter()
 
 const questions = ref<Question[]>([])
 const currentIndex = ref(0)
-const answers = ref<Record<number, string>>({})
+const answers = ref<Record<number, string[]>>({})
 const loading = ref(true)
 const submitted = ref(false)
 const result = ref<{ score: number; correctCount: number; passed: boolean } | null>(null)
@@ -38,11 +39,30 @@ async function fetchQuestions() {
 
 function selectOption(option: string) {
   if (submitted.value) return
-  answers.value[currentQuestion.value!.id] = option
+  const qId = currentQuestion.value!.id
+  if (!answers.value[qId]) {
+    answers.value[qId] = []
+  }
+
+  if (currentQuestion.value!.type === 'multiple') {
+    // 多选题：切换选中状态
+    const index = answers.value[qId].indexOf(option)
+    if (index > -1) {
+      answers.value[qId].splice(index, 1)
+    } else {
+      answers.value[qId].push(option)
+      answers.value[qId].sort()
+    }
+  } else {
+    // 单选题：直接替换
+    answers.value[qId] = [option]
+  }
 }
 
 function isSelected(option: string): boolean {
-  return answers.value[currentQuestion.value?.id] === option
+  const qId = currentQuestion.value?.id
+  if (!qId) return false
+  return answers.value[qId]?.includes(option) ?? false
 }
 
 function prevQuestion() {
@@ -58,7 +78,7 @@ function nextQuestion() {
 }
 
 async function submitQuiz() {
-  const unanswered = questions.value.filter(q => !answers.value[q.id])
+  const unanswered = questions.value.filter(q => !answers.value[q.id] || answers.value[q.id].length === 0)
   if (unanswered.length > 0) {
     try {
       await ElMessageBox.confirm(`还有 ${unanswered.length} 题未作答，确定提交吗？`, '提示', {
@@ -72,9 +92,9 @@ async function submitQuiz() {
   }
 
   const levelId = Number(route.params.id)
-  const answerList = Object.entries(answers.value).map(([questionId, answer]) => ({
+  const answerList = Object.entries(answers.value).map(([questionId, answerArr]) => ({
     questionId: Number(questionId),
-    answer
+    answer: (answerArr as string[]).join(',')
   }))
 
   try {
@@ -147,7 +167,7 @@ onMounted(() => {
               v-for="(_, index) in questions"
               :key="index"
               class="dot"
-              :class="{ active: index === currentIndex, answered: answers[questions[index]?.id] }"
+              :class="{ active: index === currentIndex, answered: answers[questions[index]?.id]?.length > 0 }"
               @click="currentIndex = index"
             />
           </div>

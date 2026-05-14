@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeft, Clock, View } from '@element-plus/icons-vue'
 import { classroomApi } from '@/api/user/classroom'
 import type { Lesson } from '@/types'
 
@@ -64,7 +65,6 @@ onMounted(() => {
           <h1 class="lesson-title">{{ lesson.title }}</h1>
           <div class="lesson-meta">
             <span><el-icon><Clock /></el-icon> {{ formatDuration(lesson.duration) }}</span>
-            <span><el-icon><View /></el-icon> {{ lesson.views }} 观看</span>
           </div>
           <div v-if="lesson.summary" class="lesson-summary">
             <h3>课程简介</h3>

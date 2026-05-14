@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import { communityApi } from '@/api/user/community'
 import { uploadApi } from '@/api/upload'
 import type { Category } from '@/types'

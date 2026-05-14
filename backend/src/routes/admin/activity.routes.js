@@ -14,15 +14,54 @@ router.get('/', authAdmin, async (req, res) => {
     const { page, pageSize } = validatePagination(req.query.page, req.query.pageSize);
     const { form, status, keyword } = req.query;
 
+    // Convert form filter string to number
+    const formNum = form === 'offline' ? 2 : (form === 'online' ? 1 : '');
+
     const result = await ActivityModel.findAll({
       page,
       pageSize,
-      form,
+      form: formNum,
       status,
       keyword
     });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform field names to camelCase and convert form number to string
+    const list = result.list.map(activity => {
+      // Format datetime to string format for frontend
+      const formatDateTime = (dt) => {
+        if (!dt) return '';
+        const d = new Date(dt);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        const seconds = String(d.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      };
+
+      return {
+        id: activity.id,
+        title: activity.title,
+        summary: activity.summary,
+        cover: activity.cover,
+        content: activity.content,
+        organizer: activity.organizer,
+        form: activity.form === 2 ? 'offline' : 'online',
+        address: activity.address,
+        startTime: formatDateTime(activity.start_time),
+        endTime: formatDateTime(activity.end_time),
+        views: activity.views,
+        likes: activity.likes_count,
+        comments: activity.comments_count,
+        collects: activity.collects_count,
+        signs: activity.signs_count,
+        status: activity.status,
+        createdAt: activity.created_at
+      };
+    });
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get activities error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -42,13 +81,16 @@ router.post('/', authAdmin, async (req, res) => {
       return res.status(400).json({ code: 400, message: '标题、内容、开始时间和结束时间不能为空', data: null });
     }
 
+    // Convert form string to number: online -> 1, offline -> 2
+    const formNum = form === 'offline' ? 2 : 1;
+
     const activityId = await ActivityModel.create({
       title,
       summary,
       cover,
       content,
       organizer,
-      form,
+      form: formNum,
       address,
       start_time: startTime,
       end_time: endTime,
@@ -81,18 +123,27 @@ router.put('/:id', authAdmin, async (req, res) => {
       return res.status(404).json({ code: 404, message: '活动不存在', data: null });
     }
 
-    await ActivityModel.update(id, {
-      title,
-      summary,
-      cover,
-      content,
-      organizer,
-      form,
-      address,
-      start_time: startTime,
-      end_time: endTime,
-      status
-    });
+    // Convert form string to number: online -> 1, offline -> 2
+    // If form is already a number, use it directly
+    let formNum = form;
+    if (typeof form === 'string') {
+      formNum = form === 'offline' ? 2 : 1;
+    }
+
+    // Build update data, only include non-empty fields
+    const updateData = {};
+    if (title !== undefined && title !== '') updateData.title = title;
+    if (summary !== undefined) updateData.summary = summary;
+    if (cover !== undefined) updateData.cover = cover;
+    if (content !== undefined && content !== '') updateData.content = content;
+    if (organizer !== undefined) updateData.organizer = organizer;
+    if (formNum !== undefined) updateData.form = formNum;
+    if (address !== undefined) updateData.address = address;
+    if (startTime !== undefined && startTime !== '') updateData.start_time = startTime;
+    if (endTime !== undefined && endTime !== '') updateData.end_time = endTime;
+    if (status !== undefined) updateData.status = status;
+
+    await ActivityModel.update(id, updateData);
 
     res.json({ code: 200, message: '更新成功', data: { success: true } });
   } catch (error) {
@@ -155,7 +206,21 @@ router.get('/:id/signups', authAdmin, async (req, res) => {
 
     const result = await ActivitySignModel.findByActivity(id, { page, pageSize });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform field names to camelCase and nest user info
+    const list = result.list.map(signup => ({
+      id: signup.id,
+      activityId: signup.activity_id,
+      userId: signup.user_id,
+      createdAt: signup.created_at,
+      user: {
+        id: signup.user_id,
+        username: signup.username,
+        nickname: signup.nickname,
+        phone: signup.phone
+      }
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get signups error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

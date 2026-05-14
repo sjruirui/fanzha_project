@@ -3,11 +3,11 @@ import type { Chapter, Lesson } from '@/types'
 
 export const classroomApi = {
   getChapters() {
-    return request.get<Chapter[]>('/user/classroom/chapters')
+    return request.get<{ chapters: Chapter[] }>('/user/classroom/chapters').then(res => res.chapters || [])
   },
 
   getChapterLessons(chapterId: number) {
-    return request.get<Lesson[]>(`/user/classroom/chapters/${chapterId}/lessons`)
+    return request.get<{ lessons: Lesson[] }>(`/user/classroom/chapters/${chapterId}/lessons`).then(res => res.lessons || [])
   },
 
   getLessonDetail(id: number) {

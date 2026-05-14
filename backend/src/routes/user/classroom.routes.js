@@ -11,13 +11,23 @@ router.get('/chapters', async (req, res) => {
   try {
     const chapters = await ChapterModel.findAllPublished();
 
-    // Get lesson count for each chapter
+    // Get lesson count for each chapter and transform to camelCase
+    const result = [];
     for (const chapter of chapters) {
       const lessons = await LessonModel.findByChapterId(chapter.id);
-      chapter.lesson_count = lessons.length;
+      result.push({
+        id: chapter.id,
+        title: chapter.title,
+        summary: chapter.summary,
+        cover: chapter.cover,
+        sortOrder: chapter.sort_order,
+        status: chapter.status,
+        lessonCount: lessons.length,
+        createdAt: chapter.created_at
+      });
     }
 
-    res.json({ code: 200, message: 'success', data: { chapters } });
+    res.json({ code: 200, message: 'success', data: { chapters: result } });
   } catch (error) {
     console.error('Get chapters error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -40,7 +50,21 @@ router.get('/chapters/:id/lessons', async (req, res) => {
 
     const lessons = await LessonModel.findByChapterId(id);
 
-    res.json({ code: 200, message: 'success', data: { lessons, chapter } });
+    // Transform to camelCase
+    const lessonList = lessons.map(lesson => ({
+      id: lesson.id,
+      chapterId: lesson.chapter_id,
+      title: lesson.title,
+      summary: lesson.summary,
+      cover: lesson.cover,
+      videoUrl: lesson.video_url,
+      duration: lesson.duration,
+      sortOrder: lesson.sort_order,
+      views: lesson.views || 0,
+      createdAt: lesson.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: { lessons: lessonList, chapter } });
   } catch (error) {
     console.error('Get lessons error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -61,21 +85,24 @@ router.get('/lessons/:id', async (req, res) => {
       return res.status(404).json({ code: 404, message: '课时不存在', data: null });
     }
 
-    // Get prev and next lesson
-    const lessons = await LessonModel.findByChapterId(lesson.chapter_id);
-    const currentIndex = lessons.findIndex(l => l.id === parseInt(id));
-
-    const prevLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null;
-    const nextLesson = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;
+    // Transform to camelCase
+    const result = {
+      id: lesson.id,
+      chapterId: lesson.chapter_id,
+      title: lesson.title,
+      summary: lesson.summary,
+      cover: lesson.cover,
+      videoUrl: lesson.video_url,
+      duration: lesson.duration,
+      sortOrder: lesson.sort_order,
+      views: lesson.views || 0,
+      createdAt: lesson.created_at
+    };
 
     res.json({
       code: 200,
       message: 'success',
-      data: {
-        lesson_detail: lesson,
-        prev_lesson: prevLesson,
-        next_lesson: nextLesson
-      }
+      data: result
     });
   } catch (error) {
     console.error('Get lesson detail error:', error);

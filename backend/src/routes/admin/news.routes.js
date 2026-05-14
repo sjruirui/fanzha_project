@@ -14,15 +14,34 @@ router.get('/', authAdmin, async (req, res) => {
     const { page, pageSize } = validatePagination(req.query.page, req.query.pageSize);
     const { type, status, keyword } = req.query;
 
+    // Convert status to number if provided
+    const statusNum = status !== undefined && status !== '' ? parseInt(status) : '';
+
     const result = await AntifraudModel.findAll({
       page,
       pageSize,
       type,
-      status,
+      status: statusNum,
       keyword
     });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform field names to camelCase and include content for editing
+    const list = result.list.map(news => ({
+      id: news.id,
+      title: news.title,
+      summary: news.summary,
+      cover: news.cover,
+      content: news.content,
+      type: news.type,
+      tags: news.tags,
+      author: news.author,
+      views: news.views,
+      status: news.status,
+      createdAt: news.created_at,
+      publishedAt: news.published_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get news error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

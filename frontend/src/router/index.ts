@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useAppStore } from '@/stores/app'
+import { useAdminStore } from '@/stores/admin'
 import UserLayout from '@/components/layout/UserLayout.vue'
 
 const router = createRouter({
@@ -146,18 +147,98 @@ const router = createRouter({
     },
     {
       path: '/admin',
-      name: 'AdminLayout',
       component: () => import('@/views/admin/AdminLayout.vue'),
+      meta: { requiresAdminAuth: true },
       children: [
         {
           path: '',
           name: 'AdminHome',
-          component: () => import('@/views/admin/AdminHome.vue')
+          component: () => import('@/views/admin/AdminHome.vue'),
+          meta: { title: '首页' }
         },
         {
           path: 'login',
           name: 'AdminLogin',
-          component: () => import('@/views/admin/AdminLogin.vue')
+          component: () => import('@/views/admin/AdminLogin.vue'),
+          meta: { title: '管理员登录', guest: true }
+        },
+        {
+          path: 'users',
+          name: 'AdminUsers',
+          component: () => import('@/views/admin/AdminUsers.vue'),
+          meta: { title: '用户管理' }
+        },
+        {
+          path: 'admins',
+          name: 'AdminAdmins',
+          component: () => import('@/views/admin/AdminAdmins.vue'),
+          meta: { title: '管理员管理' }
+        },
+        {
+          path: 'news',
+          name: 'AdminNews',
+          component: () => import('@/views/admin/AdminNews.vue'),
+          meta: { title: '反诈资讯管理' }
+        },
+        {
+          path: 'knowledge',
+          name: 'AdminKnowledge',
+          component: () => import('@/views/admin/AdminKnowledge.vue'),
+          meta: { title: '反诈知识库管理' }
+        },
+        {
+          path: 'classroom',
+          name: 'AdminClassroom',
+          component: () => import('@/views/admin/AdminClassroom.vue'),
+          meta: { title: '反诈课堂管理' }
+        },
+        {
+          path: 'posts',
+          name: 'AdminPosts',
+          component: () => import('@/views/admin/AdminPosts.vue'),
+          meta: { title: '帖子管理' }
+        },
+        {
+          path: 'categories',
+          name: 'AdminCategories',
+          component: () => import('@/views/admin/AdminCategories.vue'),
+          meta: { title: '分类管理' }
+        },
+        {
+          path: 'activities',
+          name: 'AdminActivities',
+          component: () => import('@/views/admin/AdminActivities.vue'),
+          meta: { title: '活动管理' }
+        },
+        {
+          path: 'signups',
+          name: 'AdminSignups',
+          component: () => import('@/views/admin/AdminSignups.vue'),
+          meta: { title: '活动报名管理' }
+        },
+        {
+          path: 'quiz',
+          name: 'AdminQuiz',
+          component: () => import('@/views/admin/AdminQuiz.vue'),
+          meta: { title: '反诈自测管理' }
+        },
+        {
+          path: 'reports',
+          name: 'AdminReports',
+          component: () => import('@/views/admin/AdminReports.vue'),
+          meta: { title: '举报管理' }
+        },
+        {
+          path: 'comments',
+          name: 'AdminComments',
+          component: () => import('@/views/admin/AdminComments.vue'),
+          meta: { title: '评论管理' }
+        },
+        {
+          path: 'notices',
+          name: 'AdminNotices',
+          component: () => import('@/views/admin/AdminNotices.vue'),
+          meta: { title: '公告管理' }
         }
       ]
     },
@@ -173,18 +254,30 @@ const router = createRouter({
 })
 
 // Route guard
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to) => {
   const userStore = useUserStore()
   const appStore = useAppStore()
+  const adminStore = useAdminStore()
 
-  // Check if route requires authentication
+  // Check if route requires user authentication
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     appStore.openLoginModal('login')
-    next({ path: to.redirectedFrom?.path || '/' })
-    return
+    return { path: to.redirectedFrom?.path || '/' }
   }
 
-  next()
+  // Check if route requires admin authentication
+  if (to.meta.requiresAdminAuth && !to.meta.guest) {
+    if (!adminStore.isLoggedIn) {
+      return { path: '/admin/login' }
+    }
+  }
+
+  // Redirect to admin home if logged in and trying to access login
+  if (to.path === '/admin/login' && adminStore.isLoggedIn) {
+    return { path: '/admin' }
+  }
+
+  return true
 })
 
 export default router

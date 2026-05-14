@@ -3,7 +3,7 @@ import type { Banner, News, PaginatedResponse } from '@/types'
 
 export const homeApi = {
   getBanners() {
-    return request.get<Banner[]>('/user/home/banners')
+    return request.get<{ banners: Banner[] }>('/user/home/banners').then(res => res.banners || [])
   },
 
   getRecommend() {

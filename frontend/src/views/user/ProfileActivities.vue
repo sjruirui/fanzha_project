@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Calendar, Location } from '@element-plus/icons-vue'
 import { profileApi } from '@/api/user/profile'
 import type { Activity } from '@/types'
 import dayjs from 'dayjs'
@@ -12,6 +13,14 @@ const loading = ref(false)
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
+
+function getImageUrl(path: string | undefined): string {
+  if (!path) return '/placeholder.jpg'
+  // Convert backslashes to forward slashes for URL
+  const normalizedPath = path.replace(/\\/g, '/')
+  // Ensure path starts with /
+  return normalizedPath.startsWith('/') ? normalizedPath : '/' + normalizedPath
+}
 
 async function fetchActivities() {
   loading.value = true
@@ -62,7 +71,7 @@ onMounted(() => {
           @click="goToDetail(item.activity.id)"
         >
           <div class="activity-cover">
-            <img :src="item.activity.cover || '/placeholder.jpg'" :alt="item.activity.title" />
+            <img :src="getImageUrl(item.activity.cover)" :alt="item.activity.title" />
           </div>
           <div class="activity-info">
             <div class="activity-title">{{ item.activity.title }}</div>

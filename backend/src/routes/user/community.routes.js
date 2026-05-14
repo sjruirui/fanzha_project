@@ -37,7 +37,27 @@ router.get('/posts', async (req, res) => {
       keyword
     });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform field names to camelCase
+    const list = result.list.map(post => ({
+      id: post.id,
+      title: post.title,
+      summary: post.summary,
+      cover: post.cover,
+      tags: post.tags,
+      views: post.views,
+      likes: post.likes_count,
+      comments: post.comments_count,
+      collects: post.collects_count,
+      status: post.status,
+      createdAt: post.created_at,
+      categoryName: post.category_name,
+      author: {
+        nickname: post.author_nickname,
+        avatar: post.author_avatar
+      }
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get posts list error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

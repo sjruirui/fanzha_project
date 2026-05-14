@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Upload } from '@element-plus/icons-vue'
 import { reportApi } from '@/api/user/report'
 import { uploadApi } from '@/api/upload'
 

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { View, ChatDotRound, Star, CollectionTag } from '@element-plus/icons-vue'
 import { communityApi } from '@/api/user/community'
 import { interactApi } from '@/api/user/interact'
 import { commentApi } from '@/api/user/comment'
@@ -161,6 +162,25 @@ async function handleDeletePost() {
   }
 }
 
+async function handleDeleteComment(comment: Comment) {
+  try {
+    await ElMessageBox.confirm('确定要删除这条评论吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await commentApi.delete(comment.id)
+    ElMessage.success('删除成功')
+    fetchComments()
+  } catch {
+    // User cancelled or error
+  }
+}
+
+function canDeleteComment(comment: Comment): boolean {
+  return isLoggedIn.value && userStore.userInfo?.id === comment.userId
+}
+
 onMounted(() => {
   fetchPost()
   fetchComments()
@@ -264,6 +284,27 @@ onMounted(() => {
                 </div>
                 <div class="comment-actions">
                   <el-button link size="small" @click="handleReply(comment)">回复</el-button>
+                  <el-button v-if="canDeleteComment(comment)" type="danger" link size="small" @click="handleDeleteComment(comment)">删除</el-button>
+                </div>
+                <!-- Replies -->
+                <div v-if="comment.replies && comment.replies.length > 0" class="replies-list">
+                  <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
+                    <el-avatar :size="28" :src="reply.user?.avatar || undefined">
+                      {{ reply.user?.nickname?.charAt(0) || 'U' }}
+                    </el-avatar>
+                    <div class="reply-content">
+                      <div class="reply-header">
+                        <span class="reply-author">{{ reply.user?.nickname || '用户' }}</span>
+                        <span v-if="reply.replyToUsername" class="reply-to-user">@{{ reply.replyToUsername }}</span>
+                        <span class="reply-time">{{ formatDate(reply.createdAt) }}</span>
+                      </div>
+                      <div class="reply-text">{{ reply.content }}</div>
+                      <div class="reply-actions">
+                        <el-button link size="small" @click="handleReply(reply)">回复</el-button>
+                        <el-button v-if="canDeleteComment(reply)" type="danger" link size="small" @click="handleDeleteComment(reply)">删除</el-button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -438,5 +479,54 @@ onMounted(() => {
 
 .comment-actions {
   margin-top: 6px;
+}
+
+.replies-list {
+  margin-top: 12px;
+  padding-left: 12px;
+  border-left: 2px solid #e4e7ed;
+}
+
+.reply-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.reply-content {
+  flex: 1;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.reply-author {
+  font-size: 13px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.reply-to-user {
+  font-size: 13px;
+  color: #409eff;
+}
+
+.reply-time {
+  font-size: 12px;
+  color: #909399;
+}
+
+.reply-text {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.reply-actions {
+  margin-top: 4px;
 }
 </style>

@@ -22,7 +22,7 @@ class KnowledgeModel {
     const limit = parseInt(pageSize) || 10;
     const offset = (parseInt(page) - 1) * limit || 0;
 
-    let sql = 'SELECT id, title, summary, cover, type, target_group, tags, views, status, created_at FROM knowledge WHERE 1=1';
+    let sql = 'SELECT id, title, summary, cover, content, type, target_group, tags, views, status, created_at FROM knowledge WHERE 1=1';
     const params = [];
 
     if (type) {
@@ -107,9 +107,10 @@ class KnowledgeModel {
   }
 
   static async getRelated(id, type, limit = 5) {
+    const limitVal = parseInt(limit) || 5;
     const [rows] = await db.execute(
-      'SELECT id, title, summary, cover, type, views, created_at FROM knowledge WHERE type = ? AND id != ? AND status = 1 ORDER BY created_at DESC LIMIT ?',
-      [type, id, limit]
+      `SELECT id, title, summary, cover, type, target_group, views, created_at FROM knowledge WHERE type = ? AND id != ? AND status = 1 ORDER BY created_at DESC LIMIT ${limitVal}`,
+      [type, id]
     );
     return rows;
   }
@@ -120,6 +121,11 @@ class KnowledgeModel {
       `SELECT id, title, summary, cover, type, target_group, views, created_at FROM knowledge WHERE status = 1 ORDER BY created_at DESC LIMIT ${limitVal}`
     );
     return rows;
+  }
+
+  static async getCount() {
+    const [rows] = await db.execute('SELECT COUNT(*) as count FROM knowledge');
+    return rows[0].count;
   }
 }
 

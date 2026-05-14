@@ -28,7 +28,7 @@ instance.interceptors.request.use(
 
 // Response interceptor
 instance.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
+  (response: AxiosResponse<ApiResponse>): unknown => {
     const res = response.data
     if (res.code === 200) {
       return res.data

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Search } from '@element-plus/icons-vue'
 import { knowledgeApi } from '@/api/user/knowledge'
 import type { Knowledge } from '@/types'
 
@@ -15,21 +16,30 @@ const pageSize = ref(12)
 
 const types = [
   { label: '全部', value: '' },
-  { label: '防骗指南', value: 'guide' },
-  { label: '诈骗话术集', value: 'tactics' }
+  { label: '电信诈骗', value: '电信诈骗' },
+  { label: '网络诈骗', value: '网络诈骗' },
+  { label: '金融诈骗', value: '金融诈骗' },
+  { label: '其他', value: '其他' }
 ]
 
 const targetGroups = [
   { label: '全部人群', value: '' },
-  { label: '老年人', value: 'elderly' },
-  { label: '学生', value: 'student' },
-  { label: '财务人员', value: 'finance' },
-  { label: '其他', value: 'other' }
+  { label: '老年人', value: '老年人' },
+  { label: '青少年', value: '青少年' },
+  { label: '大学生', value: '大学生' },
+  { label: '企业员工', value: '企业员工' },
+  { label: '全体', value: '全体' }
 ]
 
 const activeType = ref('')
 const activeTarget = ref('')
 const keyword = ref('')
+
+function getImageUrl(path: string | undefined): string {
+  if (!path) return '/placeholder.jpg'
+  const normalizedPath = path.replace(/\\/g, '/')
+  return normalizedPath.startsWith('/') ? normalizedPath : '/' + normalizedPath
+}
 
 async function fetchKnowledge() {
   loading.value = true
@@ -131,7 +141,7 @@ onMounted(() => {
           @click="goToDetail(item.id)"
         >
           <div class="knowledge-cover">
-            <img :src="item.cover || '/placeholder.jpg'" :alt="item.title" />
+            <img :src="getImageUrl(item.cover)" :alt="item.title" />
           </div>
           <div class="knowledge-info">
             <div class="knowledge-title">{{ item.title }}</div>

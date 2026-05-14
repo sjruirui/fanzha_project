@@ -22,15 +22,15 @@ class ChapterModel {
     const limit = parseInt(pageSize) || 10;
     const offset = (parseInt(page) - 1) * limit || 0;
 
-    let sql = 'SELECT * FROM chapter WHERE 1=1';
+    let sql = `SELECT c.*, COUNT(l.id) as lesson_count FROM chapter c LEFT JOIN lesson l ON c.id = l.chapter_id WHERE 1=1`;
     const params = [];
 
     if (status !== '' && status !== undefined && status !== null) {
-      sql += ' AND status = ?';
+      sql += ' AND c.status = ?';
       params.push(parseInt(status));
     }
 
-    sql += ` ORDER BY sort_order ASC, created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+    sql += ` GROUP BY c.id ORDER BY c.sort_order ASC, c.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
 
     const [rows] = await db.execute(sql, params);
 
@@ -105,7 +105,7 @@ class LessonModel {
     const limit = parseInt(pageSize) || 10;
     const offset = (parseInt(page) - 1) * limit || 0;
 
-    let sql = 'SELECT l.*, c.title as chapter_title FROM lesson l LEFT JOIN chapter c ON l.chapter_id = c.id WHERE 1=1';
+    let sql = 'SELECT l.id, l.chapter_id, l.title, l.summary, l.cover, l.video_url, l.duration, l.sort_order, l.status, l.created_at, c.title as chapter_title FROM lesson l LEFT JOIN chapter c ON l.chapter_id = c.id WHERE 1=1';
     const params = [];
 
     if (chapter_id) {

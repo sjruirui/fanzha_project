@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { Search, Calendar, Location, User, View } from '@element-plus/icons-vue'
 import { activityApi } from '@/api/user/activity'
 import type { Activity } from '@/types'
 import dayjs from 'dayjs'

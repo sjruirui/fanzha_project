@@ -66,7 +66,11 @@ async function handleChangePassword() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 确保用户信息已加载（刷新页面时 userInfo 为 null）
+  if (!userStore.userInfo && userStore.isLoggedIn) {
+    await userStore.getUserInfo()
+  }
   if (userStore.userInfo) {
     form.value = {
       nickname: userStore.userInfo.nickname || '',

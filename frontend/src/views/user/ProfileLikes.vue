@@ -20,6 +20,14 @@ const types = [
   { label: '活动', value: 'activity' }
 ]
 
+function getImageUrl(path: string | undefined): string {
+  if (!path) return '/placeholder.jpg'
+  // Convert backslashes to forward slashes for URL
+  const normalizedPath = path.replace(/\\/g, '/')
+  // Ensure path starts with /
+  return normalizedPath.startsWith('/') ? normalizedPath : '/' + normalizedPath
+}
+
 async function fetchLikes() {
   loading.value = true
   try {
@@ -82,7 +90,7 @@ onMounted(() => {
       <div v-else class="items">
         <div v-for="item in likes" :key="item.id" class="like-item" @click="goToDetail(item)">
           <div class="item-cover">
-            <img :src="item.targetCover || '/placeholder.jpg'" :alt="item.targetTitle" />
+            <img :src="getImageUrl(item.targetCover)" :alt="item.targetTitle" />
           </div>
           <div class="item-info">
             <div class="item-title">{{ item.targetTitle }}</div>

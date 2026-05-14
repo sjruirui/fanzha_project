@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Calendar, Location, User, View, Star, CollectionTag } from '@element-plus/icons-vue'
 import { activityApi } from '@/api/user/activity'
 import { interactApi } from '@/api/user/interact'
 import { commentApi } from '@/api/user/comment'
@@ -18,6 +19,7 @@ const appStore = useAppStore()
 const activity = ref<Activity | null>(null)
 const comments = ref<Comment[]>([])
 const commentText = ref('')
+const replyTo = ref<Comment | null>(null)
 const loading = ref(true)
 
 const isSigned = ref(false)
@@ -25,6 +27,14 @@ const isLiked = ref(false)
 const isCollected = ref(false)
 
 const isLoggedIn = computed(() => userStore.isLoggedIn)
+
+function getImageUrl(path: string | undefined): string {
+  if (!path) return '/placeholder.jpg'
+  // Convert backslashes to forward slashes for URL
+  const normalizedPath = path.replace(/\\/g, '/')
+  // Ensure path starts with /
+  return normalizedPath.startsWith('/') ? normalizedPath : '/' + normalizedPath
+}
 
 async function fetchActivity() {
   const id = Number(route.params.id)
@@ -146,14 +156,50 @@ async function submitComment() {
     await commentApi.create({
       targetType: 'activity',
       targetId: activity.value!.id,
+      parentId: replyTo.value?.id,
+      replyToUserId: replyTo.value?.userId,
       content: commentText.value
     })
     ElMessage.success('评论成功')
     commentText.value = ''
+    replyTo.value = null
     fetchComments()
   } catch {
     // Error handled
   }
+}
+
+function handleReply(comment: Comment) {
+  if (!isLoggedIn.value) {
+    appStore.openLoginModal('login')
+    return
+  }
+  replyTo.value = comment
+  commentText.value = `@${comment.user?.nickname || '用户'} `
+}
+
+function cancelReply() {
+  replyTo.value = null
+  commentText.value = ''
+}
+
+async function handleDeleteComment(comment: Comment) {
+  try {
+    await ElMessageBox.confirm('确定要删除这条评论吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await commentApi.delete(comment.id)
+    ElMessage.success('删除成功')
+    fetchComments()
+  } catch {
+    // User cancelled or error
+  }
+}
+
+function canDeleteComment(comment: Comment): boolean {
+  return isLoggedIn.value && userStore.userInfo?.id === comment.userId
 }
 
 onMounted(() => {
@@ -192,7 +238,7 @@ onMounted(() => {
 
         <!-- Activity Cover -->
         <div class="activity-cover card">
-          <img :src="activity.cover || '/placeholder.jpg'" :alt="activity.title" />
+          <img :src="getImageUrl(activity.cover)" :alt="activity.title" />
         </div>
 
         <!-- Activity Content -->
@@ -223,6 +269,10 @@ onMounted(() => {
         <div class="comments-section card">
           <h3 class="section-title">评论</h3>
           <div class="comment-input">
+            <div v-if="replyTo" class="reply-info">
+              回复 <span class="reply-name">@{{ replyTo.user?.nickname || '用户' }}</span>
+              <el-button link size="small" @click="cancelReply">取消</el-button>
+            </div>
             <el-input
               v-model="commentText"
               type="textarea"
@@ -246,7 +296,34 @@ onMounted(() => {
                   <span class="comment-author">{{ comment.user?.nickname || '用户' }}</span>
                   <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
                 </div>
-                <div class="comment-text">{{ comment.content }}</div>
+                <div class="comment-text">
+                  <span v-if="comment.replyToUsername" class="reply-to">@{{ comment.replyToUsername }}</span>
+                  {{ comment.content }}
+                </div>
+                <div class="comment-actions">
+                  <el-button link size="small" @click="handleReply(comment)">回复</el-button>
+                  <el-button v-if="canDeleteComment(comment)" type="danger" link size="small" @click="handleDeleteComment(comment)">删除</el-button>
+                </div>
+                <!-- Replies -->
+                <div v-if="comment.replies && comment.replies.length > 0" class="replies-list">
+                  <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
+                    <el-avatar :size="28" :src="reply.user?.avatar || undefined">
+                      {{ reply.user?.nickname?.charAt(0) || 'U' }}
+                    </el-avatar>
+                    <div class="reply-content">
+                      <div class="reply-header">
+                        <span class="reply-author">{{ reply.user?.nickname || '用户' }}</span>
+                        <span v-if="reply.replyToUsername" class="reply-to-user">@{{ reply.replyToUsername }}</span>
+                        <span class="reply-time">{{ formatDate(reply.createdAt) }}</span>
+                      </div>
+                      <div class="reply-text">{{ reply.content }}</div>
+                      <div class="reply-actions">
+                        <el-button link size="small" @click="handleReply(reply)">回复</el-button>
+                        <el-button v-if="canDeleteComment(reply)" type="danger" link size="small" @click="handleDeleteComment(reply)">删除</el-button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -395,5 +472,72 @@ onMounted(() => {
   font-size: 14px;
   color: #606266;
   line-height: 1.6;
+}
+
+.reply-to {
+  color: #409eff;
+}
+
+.comment-actions {
+  margin-top: 6px;
+}
+
+.replies-list {
+  margin-top: 12px;
+  padding-left: 12px;
+  border-left: 2px solid #e4e7ed;
+}
+
+.reply-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.reply-content {
+  flex: 1;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.reply-author {
+  font-size: 13px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.reply-to-user {
+  font-size: 13px;
+  color: #409eff;
+}
+
+.reply-time {
+  font-size: 12px;
+  color: #909399;
+}
+
+.reply-text {
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.5;
+}
+
+.reply-actions {
+  margin-top: 4px;
+}
+
+.reply-info {
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.reply-name {
+  color: #409eff;
 }
 </style>

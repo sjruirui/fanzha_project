@@ -1,5 +1,13 @@
 import { request } from '../request'
-import type { UserInfo, Post, Activity, LikeItem, CollectItem, Comment, PaginatedResponse } from '@/types'
+import type { UserInfo, Post, Activity, LikeItem, CollectItem, Comment, PaginatedResponse, Report } from '@/types'
+
+// Target type mapping: string -> number
+const targetTypeMap: Record<string, number> = {
+  post: 1,
+  activity: 2,
+  news: 3,
+  knowledge: 4
+}
 
 export const profileApi = {
   getProfile() {
@@ -23,11 +31,15 @@ export const profileApi = {
   },
 
   getLikes(params: { page?: number; pageSize?: number; targetType?: string }) {
-    return request.get<PaginatedResponse<LikeItem>>('/user/profile/likes', { params })
+    return request.get<PaginatedResponse<LikeItem>>('/user/profile/likes', {
+      params
+    })
   },
 
   getCollects(params: { page?: number; pageSize?: number; targetType?: string }) {
-    return request.get<PaginatedResponse<CollectItem>>('/user/profile/collects', { params })
+    return request.get<PaginatedResponse<CollectItem>>('/user/profile/collects', {
+      params
+    })
   },
 
   getComments(params: { page?: number; pageSize?: number; targetType?: string }) {

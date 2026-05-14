@@ -10,17 +10,17 @@ export const useUserStore = defineStore('user', () => {
   const isLoggedIn = computed(() => !!token.value)
 
   async function login(form: LoginForm) {
-    const data = await request.post<{ token: string; userInfo: UserInfo }>('/user/auth/login', form)
+    const data = await request.post<{ token: string; user_info: UserInfo }>('/user/auth/login', form)
     token.value = data.token
-    userInfo.value = data.userInfo
+    userInfo.value = data.user_info
     localStorage.setItem('token', data.token)
     return data
   }
 
   async function register(form: RegisterForm) {
-    const data = await request.post<{ token: string; userInfo: UserInfo }>('/user/auth/register', form)
+    const data = await request.post<{ token: string; user_info: UserInfo }>('/user/auth/register', form)
     token.value = data.token
-    userInfo.value = data.userInfo
+    userInfo.value = data.user_info
     localStorage.setItem('token', data.token)
     return data
   }
@@ -28,9 +28,9 @@ export const useUserStore = defineStore('user', () => {
   async function getUserInfo() {
     if (!token.value) return null
     try {
-      const data = await request.get<UserInfo>('/user/auth/info')
-      userInfo.value = data
-      return data
+      const data = await request.get<{ user_info: UserInfo }>('/user/auth/info')
+      userInfo.value = data.user_info
+      return data.user_info
     } catch {
       logout()
       return null

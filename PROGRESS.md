@@ -11,6 +11,7 @@
 - Pinia 3.0.4 (状态管理)
 - Vue Router 5.0.4 (路由)
 - Element Plus (UI组件库)
+- WangEditor (富文本编辑器)
 - Vite 8.0.8 (构建工具)
 - Axios (HTTP请求)
 - Day.js (日期处理)
@@ -52,37 +53,11 @@
 | ai_session | AI会话表 |
 | ai_message | AI消息表 |
 
-数据库迁移文件：`database/migrations/001_init_schema.sql`
-
 ### 二、后端 API 实现 (2024-05-10)
 
 根据 `require/04_api_design.md` 完成了后端 API 实现：
 
-#### 项目结构
-```
-backend/
-├── src/
-│   ├── app.js                 # 应用入口
-│   ├── config/index.js        # 配置文件
-│   ├── models/                # 数据模型 (14个)
-│   │   ├── db.js              # 数据库连接
-│   │   ├── user.model.js
-│   │   ├── admin.model.js
-│   │   └── ...
-│   ├── middleware/            # 中间件
-│   │   ├── auth.middleware.js # JWT认证
-│   │   ├── error.middleware.js # 错误处理
-│   │   └── logger.middleware.js # 日志
-│   └── routes/                # 路由
-│       ├── user/              # 用户端路由 (13个模块)
-│       ├── admin/             # 管理端路由 (16个模块)
-│       └── upload/            # 文件上传
-└── package.json
-```
-
-#### API 模块
-
-**用户端 API：**
+#### 用户端 API (13个模块)
 1. 认证模块 - 登录、注册、获取用户信息
 2. 首页模块 - 轮播图、推荐内容
 3. 反诈资讯模块 - 列表、详情、相关资讯
@@ -97,7 +72,7 @@ backend/
 12. 评论模块 - 评论CRUD
 13. AI助手模块 - 会话、聊天(SSE流式响应)
 
-**管理端 API：**
+#### 管理端 API (16个模块)
 1. 管理员认证
 2. 数据统计
 3. 用户管理
@@ -115,42 +90,16 @@ backend/
 15. 公告管理
 16. 轮播图管理
 
-**文件上传 API：**
+#### 文件上传 API
 - 图片上传 `/api/upload/image`
 - 视频上传 `/api/upload/video`
 - 文件上传 `/api/upload/file`
 
-### 三、前端实现 (2024-05-10)
+### 三、前端用户端实现 (2024-05-10)
 
-根据 `require/05_route_design.md` 和 `require/01_user_requirements.md` 完成了前端实现：
+根据 `require/05_route_design.md` 和 `require/01_user_requirements.md` 完成了前端用户端实现：
 
-#### 项目结构
-```
-frontend/
-├── src/
-│   ├── api/                   # API服务层
-│   │   ├── request.ts         # Axios实例
-│   │   ├── upload.ts          # 上传API
-│   │   └── user/              # 用户API模块 (13个)
-│   ├── assets/styles/         # 全局样式
-│   ├── components/
-│   │   ├── common/            # 公共组件
-│   │   │   ├── LoginModal.vue # 登录/注册弹窗
-│   │   │   └── AiAssistant.vue # AI助手悬浮球
-│   │   └── layout/            # 布局组件
-│   │       └── UserLayout.vue # 用户端布局
-│   ├── router/index.ts        # 路由配置
-│   ├── stores/                # Pinia状态管理
-│   │   ├── user.ts            # 用户状态
-│   │   └── app.ts             # 应用状态
-│   ├── types/index.ts         # TypeScript类型定义
-│   └── views/
-│       ├── user/              # 用户端页面 (20个)
-│       └── admin/             # 管理端页面 (占位)
-└── vite.config.ts             # Vite配置
-```
-
-#### 用户端页面
+#### 用户端页面 (26个)
 
 | 路由 | 页面 | 说明 |
 |------|------|------|
@@ -180,26 +129,78 @@ frontend/
 | `/profile/comments` | ProfileComments.vue | 我的评论 |
 | `/profile/reports` | ProfileReports.vue | 我的举报 |
 
-#### 核心功能特性
+### 四、前端管理端实现 (2024-05-12)
 
-1. **登录/注册弹窗**
-   - 弹窗形式，不使用独立页面
-   - 支持登录/注册切换
-   - 表单验证
+根据 `require/02_admin_requirements.md` 完成了前端管理端实现：
 
-2. **AI反诈助手**
-   - 右下角悬浮球入口
-   - 智能问答模式
-   - 情景模拟模式（冒充公检法、刷单返利、杀猪盘、虚假网贷）
-   - SSE流式响应
-   - 会话历史管理
+#### 管理端页面 (16个)
 
-3. **路由守卫**
-   - 需登录页面自动弹出登录弹窗
-   - 管理端独立登录页
+| 路由 | 页面 | 说明 |
+|------|------|------|
+| `/admin/login` | AdminLogin.vue | 管理员登录页 |
+| `/admin` | AdminHome.vue | 管理首页 - 数据统计卡片、快捷操作 |
+| `/admin/users` | AdminUsers.vue | 用户管理 - 列表、搜索、禁用 |
+| `/admin/admins` | AdminAdmins.vue | 管理员管理 - CRUD |
+| `/admin/news` | AdminNews.vue | 反诈资讯管理 - CRUD、富文本编辑 |
+| `/admin/knowledge` | AdminKnowledge.vue | 知识库管理 - CRUD、富文本编辑 |
+| `/admin/classroom` | AdminClassroom.vue | 课堂管理 - 章节/课时双面板 |
+| `/admin/posts` | AdminPosts.vue | 帖子管理 - 列表、审核、删除 |
+| `/admin/categories` | AdminCategories.vue | 分类管理 - CRUD |
+| `/admin/activities` | AdminActivities.vue | 活动管理 - CRUD、富文本编辑 |
+| `/admin/signups` | AdminSignups.vue | 报名管理 - 列表、导出 |
+| `/admin/quiz` | AdminQuiz.vue | 自测管理 - 关卡/题目双面板 |
+| `/admin/reports` | AdminReports.vue | 举报管理 - 列表、详情、处理 |
+| `/admin/comments` | AdminComments.vue | 评论管理 - 列表、删除 |
+| `/admin/notices` | AdminNotices.vue | 公告管理 - CRUD |
 
-4. **响应式设计**
-   - 支持桌面、平板、手机
+#### 管理端核心功能
+
+1. **独立登录系统**
+   - 独立的登录页面 `/admin/login`
+   - Token 存储在 localStorage 的 `adminToken` 字段
+   - 路由守卫保护管理端页面
+
+2. **管理端布局** (AdminLayout.vue)
+   - 深色渐变侧边栏
+   - 可折叠菜单
+   - 顶部显示管理员信息
+   - 退出登录功能
+
+3. **数据统计首页**
+   - 统计卡片（用户数、资讯数、活动数、举报数）
+   - 快捷操作入口
+
+4. **富文本编辑**
+   - 资讯、知识、活动管理使用 WangEditor
+   - 支持图片上传
+
+5. **双面板管理**
+   - 课堂管理：左侧章节列表，右侧课时列表
+   - 自测管理：左侧关卡列表，右侧题目列表
+
+### 五、Bug 修复 (2024-05-12)
+
+修复了以下问题：
+
+1. **用户登录状态问题**
+   - 问题：登录后页面仍显示"登录"按钮，需刷新才显示头像
+   - 原因：后端返回 `user_info` 字段，前端期望 `userInfo`
+   - 修复：统一使用 `user_info` 字段名
+
+2. **用户信息丢失问题**
+   - 问题：退出后再次登录，用户基本信息丢失
+   - 原因：同上，字段名不匹配
+   - 修复：修改 `user.ts` store 中的字段处理
+
+3. **个人资料刷新丢失**
+   - 问题：`/profile` 页面刷新后基本信息丢失
+   - 原因：Pinia store 初始化时 userInfo 为 null
+   - 修复：在 `ProfileInfo.vue` 的 onMounted 中检查并获取用户信息
+
+4. **举报证据链接 404**
+   - 问题：点击查看证据跳转到错误 URL
+   - 原因：evidence 字段为 JSON 字符串，未正确解析
+   - 修复：添加 `parseEvidence` 和 `getEvidenceUrl` 函数处理
 
 ## 运行说明
 
@@ -229,84 +230,37 @@ npm run dev
 
 ## 待完成功能
 
-### 管理端页面
-管理端页面目前仅创建了占位文件，需要完整实现：
-- 管理员首页（数据统计可视化）
-- 用户管理
-- 管理员管理
-- 反诈资讯管理
-- 反诈知识库管理
-- 反诈课堂管理
-- 帖子管理
-- 分类管理
-- 活动管理
-- 活动报名管理
-- 反诈自测管理
-- 举报管理
-- 评论管理
-- 公告管理
-- 轮播图管理
+### AI 助手功能
+- AI 反诈助手组件已创建，但功能待完善
+- 智能问答模式
+- 情景模拟模式
 
-### 其他待优化
-1. 富文本编辑器集成（WangEditor）
-2. 图片懒加载
-3. 骨架屏加载效果
-4. 性能优化（代码分割、CDN）
-5. 单元测试
-6. E2E测试
+### 待优化项
+1. 图片懒加载
+2. 骨架屏加载效果
+3. 性能优化（代码分割、CDN）
+4. 单元测试
+5. E2E测试
 
 ## 文件清单
 
-### 后端文件 (34个)
+### 后端文件
 ```
 backend/
 ├── package.json
 ├── src/
 │   ├── app.js
 │   ├── config/index.js
-│   ├── models/
-│   │   ├── db.js
-│   │   ├── user.model.js
-│   │   ├── admin.model.js
-│   │   ├── banner.model.js
-│   │   ├── antifraud.model.js
-│   │   ├── knowledge.model.js
-│   │   ├── chapter.model.js
-│   │   ├── lesson.model.js
-│   │   ├── blog.model.js
-│   │   ├── category.model.js
-│   │   ├── activity.model.js
-│   │   ├── activity_sign.model.js
-│   │   ├── quiz.model.js
-│   │   ├── question.model.js
-│   │   └── report.model.js
-│   ├── middleware/
-│   │   ├── auth.middleware.js
-│   │   ├── error.middleware.js
-│   │   └── logger.middleware.js
+│   ├── models/ (14个数据模型)
+│   ├── middleware/ (认证、错误处理、日志)
 │   └── routes/
-│       ├── user/
-│       │   ├── index.js
-│       │   ├── auth.routes.js
-│       │   ├── home.routes.js
-│       │   ├── news.routes.js
-│       │   ├── knowledge.routes.js
-│       │   ├── classroom.routes.js
-│       │   ├── community.routes.js
-│       │   ├── activity.routes.js
-│       │   ├── quiz.routes.js
-│       │   ├── report.routes.js
-│       │   ├── profile.routes.js
-│       │   ├── interact.routes.js
-│       │   ├── comment.routes.js
-│       │   └── ai.routes.js
-│       ├── admin/
-│       │   ├── index.js
-│       │   └── ... (16个路由模块)
-│       └── upload/index.js
+│       ├── user/ (13个路由模块)
+│       ├── admin/ (16个路由模块)
+│       └── upload/
+└── tests/
 ```
 
-### 前端文件 (50+个)
+### 前端文件
 ```
 frontend/
 ├── package.json
@@ -316,36 +270,51 @@ frontend/
 │   ├── App.vue
 │   ├── api/
 │   │   ├── request.ts
+│   │   ├── adminRequest.ts
 │   │   ├── upload.ts
-│   │   └── user/ (13个API模块)
+│   │   ├── user/ (13个API模块)
+│   │   └── admin/ (13个API模块)
 │   ├── assets/styles/main.css
 │   ├── components/
-│   │   ├── layout/UserLayout.vue
+│   │   ├── layout/
+│   │   │   ├── UserLayout.vue
+│   │   │   └── AdminLayout.vue
 │   │   └── common/
 │   │       ├── LoginModal.vue
 │   │       └── AiAssistant.vue
 │   ├── router/index.ts
 │   ├── stores/
 │   │   ├── user.ts
+│   │   ├── admin.ts
 │   │   └── app.ts
 │   ├── types/index.ts
 │   └── views/
 │       ├── NotFound.vue
-│       ├── user/ (20个页面)
-│       └── admin/ (4个占位页面)
+│       ├── user/ (26个页面)
+│       └── admin/ (16个页面)
 ```
 
 ## 更新日志
+
+### 2024-05-12
+- 完成管理端前端实现（16个页面）
+- 创建管理端 API 模块（13个）
+- 创建管理端 Pinia store
+- 配置管理端路由和路由守卫
+- 集成 WangEditor 富文本编辑器
+- 修复用户登录状态显示问题
+- 修复个人资料刷新丢失问题
+- 修复举报证据链接 404 问题
 
 ### 2024-05-10
 - 完成数据库建表（21张表）
 - 完成后端API实现（用户端13个模块 + 管理端16个模块）
 - 完成前端路由配置
-- 完成用户端页面实现（20个页面）
+- 完成用户端页面实现（26个页面）
 - 完成登录/注册弹窗组件
-- 完成AI反诈助手组件
+- 完成AI反诈助手组件（基础框架）
 - 配置Vite代理
 
 ---
 
-*文档生成时间：2024-05-10*
+*文档更新时间：2024-05-12*

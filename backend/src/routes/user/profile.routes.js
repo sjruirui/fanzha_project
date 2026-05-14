@@ -108,7 +108,23 @@ router.get('/activities', authUser, async (req, res) => {
     const { page, pageSize } = validatePagination(req.query.page, req.query.pageSize);
     const result = await ActivitySignModel.findByUserId(req.user.id, { page, pageSize });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform field names to camelCase
+    const list = result.list.map(item => ({
+      id: item.id,
+      activityId: item.activity_id,
+      createdAt: item.created_at,
+      activity: {
+        id: item.activity_id,
+        title: item.title,
+        cover: item.cover,
+        form: item.form === 2 ? 'offline' : 'online',
+        startTime: item.start_time,
+        endTime: item.end_time,
+        address: item.address
+      }
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get user activities error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -125,9 +141,24 @@ router.get('/likes', authUser, async (req, res) => {
     const { page, pageSize } = validatePagination(req.query.page, req.query.pageSize);
     const { targetType } = req.query;
 
-    const result = await LikesModel.findByUserId(req.user.id, { page, pageSize, target_type: targetType });
+    // Convert targetType string to number
+    const targetTypeMap = { post: 1, activity: 2, news: 3, knowledge: 4 };
+    const targetTypeNum = targetType ? targetTypeMap[targetType] : '';
 
-    res.json({ code: 200, message: 'success', data: result });
+    const result = await LikesModel.findByUserId(req.user.id, { page, pageSize, target_type: targetTypeNum });
+
+    // Transform field names to camelCase and convert targetType number to string
+    const reverseTypeMap = { 1: 'post', 2: 'activity', 3: 'news', 4: 'knowledge' };
+    const list = result.list.map(item => ({
+      id: item.id,
+      targetType: reverseTypeMap[item.target_type] || 'unknown',
+      targetId: item.target_id,
+      targetTitle: item.target_info?.title || '',
+      targetCover: item.target_info?.cover || '',
+      createdAt: item.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get user likes error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -144,9 +175,24 @@ router.get('/collects', authUser, async (req, res) => {
     const { page, pageSize } = validatePagination(req.query.page, req.query.pageSize);
     const { targetType } = req.query;
 
-    const result = await CollectModel.findByUserId(req.user.id, { page, pageSize, target_type: targetType });
+    // Convert targetType string to number
+    const targetTypeMap = { post: 1, activity: 2, news: 3, knowledge: 4 };
+    const targetTypeNum = targetType ? targetTypeMap[targetType] : '';
 
-    res.json({ code: 200, message: 'success', data: result });
+    const result = await CollectModel.findByUserId(req.user.id, { page, pageSize, target_type: targetTypeNum });
+
+    // Transform field names to camelCase and convert targetType number to string
+    const reverseTypeMap = { 1: 'post', 2: 'activity', 3: 'news', 4: 'knowledge' };
+    const list = result.list.map(item => ({
+      id: item.id,
+      targetType: reverseTypeMap[item.target_type] || 'unknown',
+      targetId: item.target_id,
+      targetTitle: item.target_info?.title || '',
+      targetCover: item.target_info?.cover || '',
+      createdAt: item.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get user collects error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

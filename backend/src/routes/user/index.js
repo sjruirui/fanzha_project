@@ -15,6 +15,7 @@ const profileRoutes = require('./profile.routes');
 const interactRoutes = require('./interact.routes');
 const commentRoutes = require('./comment.routes');
 const aiRoutes = require('./ai.routes');
+const noticeRoutes = require('./notice.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -30,5 +31,6 @@ router.use('/profile', profileRoutes);
 router.use('/interact', interactRoutes);
 router.use('/comments', commentRoutes);
 router.use('/ai', aiRoutes);
+router.use('/notices', noticeRoutes);
 
 module.exports = router;

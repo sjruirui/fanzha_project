@@ -22,7 +22,22 @@ router.get('/', async (req, res) => {
       keyword
     });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform to camelCase
+    const list = result.list.map(item => ({
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      cover: item.cover,
+      content: item.content,
+      type: item.type,
+      targetGroup: item.target_group,
+      tags: item.tags,
+      views: item.views,
+      status: item.status,
+      createdAt: item.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get knowledge list error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -46,7 +61,22 @@ router.get('/:id', async (req, res) => {
     // Increment views
     await KnowledgeModel.incrementViews(id);
 
-    res.json({ code: 200, message: 'success', data: { knowledge_detail: knowledge } });
+    // Transform to camelCase
+    const result = {
+      id: knowledge.id,
+      title: knowledge.title,
+      summary: knowledge.summary,
+      cover: knowledge.cover,
+      content: knowledge.content,
+      type: knowledge.type,
+      targetGroup: knowledge.target_group,
+      tags: knowledge.tags,
+      views: knowledge.views,
+      status: knowledge.status,
+      createdAt: knowledge.created_at
+    };
+
+    res.json({ code: 200, message: 'success', data: result });
   } catch (error) {
     console.error('Get knowledge detail error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -69,7 +99,19 @@ router.get('/:id/related', async (req, res) => {
 
     const related = await KnowledgeModel.getRelated(id, knowledge.type, 5);
 
-    res.json({ code: 200, message: 'success', data: { related_knowledge: related } });
+    // Transform to camelCase
+    const list = related.map(item => ({
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      cover: item.cover,
+      type: item.type,
+      targetGroup: item.target_group,
+      views: item.views,
+      createdAt: item.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: list });
   } catch (error) {
     console.error('Get related knowledge error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

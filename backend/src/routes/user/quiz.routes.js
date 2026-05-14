@@ -11,12 +11,22 @@ const { validatePagination } = require('../../middleware/validation.middleware')
  */
 router.get('/levels', async (req, res) => {
   try {
-    const levels = await QuizModel.findAllPublished();
+    const rawLevels = await QuizModel.findAllPublished();
+
+    // Transform field names to camelCase
+    const levels = rawLevels.map(level => ({
+      id: level.id,
+      title: level.title,
+      description: level.description,
+      difficulty: level.difficulty,
+      sortOrder: level.sort_order,
+      questionCount: 0 // Will be updated below
+    }));
 
     // Get question count for each level
     for (const level of levels) {
       const questions = await QuestionModel.findByQuizId(level.id);
-      level.question_count = questions.length;
+      level.questionCount = questions.length;
     }
 
     res.json({ code: 200, message: 'success', data: { levels } });
@@ -40,7 +50,20 @@ router.get('/levels/:id/questions', async (req, res) => {
       return res.status(404).json({ code: 404, message: '关卡不存在', data: null });
     }
 
-    const questions = await QuestionModel.findByQuizId(id);
+    const rawQuestions = await QuestionModel.findByQuizId(id);
+
+    // Transform field names to camelCase and convert type number to string
+    const questions = rawQuestions.map(q => ({
+      id: q.id,
+      quizId: id,
+      title: q.title,
+      type: q.type === 2 ? 'multiple' : 'single',
+      optionA: q.option_a,
+      optionB: q.option_b,
+      optionC: q.option_c,
+      optionD: q.option_d,
+      sortOrder: q.sort_order
+    }));
 
     res.json({
       code: 200,
@@ -85,7 +108,14 @@ router.post('/levels/:id/submit', authUser, async (req, res) => {
 
     for (const q of questions) {
       const userAnswer = answers.find(a => a.questionId === q.id);
-      const isCorrect = userAnswer && userAnswer.answer.toUpperCase() === q.answer.toUpperCase();
+      // Normalize answers for comparison (sort and uppercase)
+      const normalizeAnswer = (ans) => {
+        if (!ans) return '';
+        return ans.toUpperCase().split(',').map(a => a.trim()).filter(a => a).sort().join(',');
+      };
+      const userAnsNormalized = normalizeAnswer(userAnswer?.answer);
+      const correctAnsNormalized = normalizeAnswer(q.answer);
+      const isCorrect = userAnsNormalized === correctAnsNormalized;
 
       if (isCorrect) {
         correctCount++;

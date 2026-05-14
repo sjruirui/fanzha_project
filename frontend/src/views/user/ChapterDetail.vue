@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeft, VideoPlay } from '@element-plus/icons-vue'
 import { classroomApi } from '@/api/user/classroom'
 import type { Chapter, Lesson } from '@/types'
 

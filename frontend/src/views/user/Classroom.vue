@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { VideoPlay } from '@element-plus/icons-vue'
 import { classroomApi } from '@/api/user/classroom'
 import type { Chapter } from '@/types'
 
@@ -41,7 +42,7 @@ onMounted(() => {
       <div v-if="chapters.length === 0 && !loading" class="empty-state">
         <el-empty description="暂无课程章节" />
       </div>
-      <div v-else class="chapter-grid">
+      <div v-if="chapters.length > 0" class="chapter-grid">
         <div
           v-for="chapter in chapters"
           :key="chapter.id"
@@ -76,6 +77,13 @@ onMounted(() => {
 }
 
 .chapter-list {
+  min-height: 400px;
+}
+
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-height: 400px;
 }
 

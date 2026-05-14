@@ -83,8 +83,8 @@ class BlogModel {
     const limit = parseInt(pageSize) || 10;
     const offset = (parseInt(page) - 1) * limit || 0;
 
-    let sql = `SELECT b.id, b.title, b.summary, b.cover, b.tags, b.views, b.likes_count, b.comments_count,
-                      b.collects_count, b.status, b.created_at,
+    let sql = `SELECT b.id, b.title, b.summary, b.cover, b.content, b.tags, b.views, b.likes_count, b.comments_count,
+                      b.collects_count, b.status, b.created_at, b.category_id, b.user_id,
                       u.username as author_name, u.nickname as author_nickname, u.avatar as author_avatar,
                       c.name as category_name
                FROM blog b

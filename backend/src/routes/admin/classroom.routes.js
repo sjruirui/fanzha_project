@@ -12,7 +12,19 @@ router.get('/chapters', authAdmin, async (req, res) => {
 
     const result = await ChapterModel.findAll({ page, pageSize, status });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform to camelCase
+    const list = result.list.map(item => ({
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      cover: item.cover,
+      sortOrder: item.sort_order,
+      status: item.status,
+      lessonCount: item.lesson_count,
+      createdAt: item.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get chapters error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -97,7 +109,23 @@ router.get('/lessons', authAdmin, async (req, res) => {
       status
     });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform to camelCase
+    const list = result.list.map(item => ({
+      id: item.id,
+      chapterId: item.chapter_id,
+      title: item.title,
+      summary: item.summary,
+      cover: item.cover,
+      videoUrl: item.video_url,
+      duration: item.duration,
+      sortOrder: item.sort_order,
+      status: item.status,
+      views: item.views || 0,
+      chapterTitle: item.chapter_title,
+      createdAt: item.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get lessons error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

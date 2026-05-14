@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { User, Document, Calendar, Star, CollectionTag, ChatDotRound, Warning } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
-import type { UserInfo } from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -10,13 +10,13 @@ const userStore = useUserStore()
 const activeMenu = ref('/profile')
 
 const menuItems = [
-  { path: '/profile', title: '个人资料', icon: 'User' },
-  { path: '/profile/posts', title: '我的帖子', icon: 'Document' },
-  { path: '/profile/activities', title: '我的活动', icon: 'Calendar' },
-  { path: '/profile/likes', title: '我的点赞', icon: 'Star' },
-  { path: '/profile/collects', title: '我的收藏', icon: 'CollectionTag' },
-  { path: '/profile/comments', title: '我的评论', icon: 'ChatDotRound' },
-  { path: '/profile/reports', title: '我的举报', icon: 'Warning' }
+  { path: '/profile', title: '个人资料', icon: User },
+  { path: '/profile/posts', title: '我的帖子', icon: Document },
+  { path: '/profile/activities', title: '我的活动', icon: Calendar },
+  { path: '/profile/likes', title: '我的点赞', icon: Star },
+  { path: '/profile/collects', title: '我的收藏', icon: CollectionTag },
+  { path: '/profile/comments', title: '我的评论', icon: ChatDotRound },
+  { path: '/profile/reports', title: '我的举报', icon: Warning }
 ]
 
 function handleMenuSelect(path: string) {

@@ -1,31 +1,36 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Document, VideoPlay, EditPen, Warning, ArrowRight, Bell } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
 import { homeApi } from '@/api/user/home'
-import { newsApi } from '@/api/user/news'
-import type { Banner, News } from '@/types'
+import { noticeApi } from '@/api/user/notice'
+import type { Banner, News, Notice } from '@/types'
 
 const router = useRouter()
 
 const banners = ref<Banner[]>([])
 const recommendNews = ref<News[]>([])
+const notices = ref<Notice[]>([])
 const loading = ref(true)
 
 const quickLinks = [
-  { title: '反诈资讯', desc: '了解最新骗局', icon: 'Document', path: '/news', color: '#409eff' },
-  { title: '反诈课堂', desc: '观看反诈视频', icon: 'VideoPlay', path: '/classroom', color: '#67c23a' },
-  { title: '反诈自测', desc: '测试防骗能力', icon: 'EditPen', path: '/quiz', color: '#e6a23c' },
-  { title: '在线举报', desc: '上报诈骗案件', icon: 'Warning', path: '/report', color: '#f56c6c' }
+  { title: '反诈资讯', desc: '了解最新骗局', icon: Document, path: '/news', color: '#409eff' },
+  { title: '反诈课堂', desc: '观看反诈视频', icon: VideoPlay, path: '/classroom', color: '#67c23a' },
+  { title: '反诈自测', desc: '测试防骗能力', icon: EditPen, path: '/quiz', color: '#e6a23c' },
+  { title: '在线举报', desc: '上报诈骗案件', icon: Warning, path: '/report', color: '#f56c6c' }
 ]
 
 onMounted(async () => {
   try {
-    const [bannerData, recommendData] = await Promise.all([
+    const [bannerData, recommendData, noticeData] = await Promise.all([
       homeApi.getBanners(),
-      homeApi.getRecommend()
+      homeApi.getRecommend(),
+      noticeApi.getList()
     ])
     banners.value = bannerData
     recommendNews.value = recommendData.news?.slice(0, 6) || []
+    notices.value = noticeData.slice(0, 3)
   } catch {
     // Error handled by API
   } finally {
@@ -40,10 +45,31 @@ function goToLink(link: string) {
     router.push(link)
   }
 }
+
+function showNoticeDetail(notice: Notice) {
+  ElMessageBox.alert(notice.content, notice.title, {
+    confirmButtonText: '确定',
+    dangerouslyUseHTMLString: true
+  })
+}
 </script>
 
 <template>
   <div class="home-page">
+    <!-- Notice Bar -->
+    <div v-if="notices.length > 0" class="notice-bar">
+      <div class="container">
+        <el-carousel height="40px" direction="vertical" :autoplay="true" :interval="3000" indicator-position="none">
+          <el-carousel-item v-for="notice in notices" :key="notice.id">
+            <div class="notice-item" @click="showNoticeDetail(notice)">
+              <el-icon><Bell /></el-icon>
+              <span class="notice-title">{{ notice.title }}</span>
+            </div>
+          </el-carousel-item>
+        </el-carousel>
+      </div>
+    </div>
+
     <!-- Banner Carousel -->
     <div class="banner-section">
       <el-carousel height="400px" :interval="5000">
@@ -111,6 +137,23 @@ function goToLink(link: string) {
 .home-page {
   background: #f5f7fa;
   min-height: calc(100vh - 60px);
+}
+
+.notice-bar {
+  background: linear-gradient(135deg, #409eff, #67c23a);
+  color: #fff;
+}
+
+.notice-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px 0;
+}
+
+.notice-title {
+  font-size: 14px;
 }
 
 .banner-section {

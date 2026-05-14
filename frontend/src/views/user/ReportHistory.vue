@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Plus, CollectionTag, Money, Clock } from '@element-plus/icons-vue'
 import { reportApi } from '@/api/user/report'
 import type { Report, PaginatedResponse } from '@/types'
 import dayjs from 'dayjs'

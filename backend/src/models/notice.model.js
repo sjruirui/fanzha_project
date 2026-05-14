@@ -25,7 +25,7 @@ class NoticeModel {
     const limit = parseInt(pageSize) || 10;
     const offset = (parseInt(page) - 1) * limit || 0;
 
-    let sql = `SELECT n.id, n.title, n.status, n.created_at, n.published_at,
+    let sql = `SELECT n.id, n.title, n.content, n.status, n.created_at, n.published_at,
                       a.nickname as publisher_name
                FROM notice n
                LEFT JOIN admin a ON n.publisher_id = a.id

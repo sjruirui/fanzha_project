@@ -12,13 +12,28 @@ router.get('/levels', authAdmin, async (req, res) => {
 
     const result = await QuizModel.findAll({ page, pageSize, status });
 
-    // Get question count for each quiz
-    for (const quiz of result.list) {
+    // Get question count for each quiz and transform field names
+    const list = result.list.map(quiz => {
+      const questions = QuestionModel.findByQuizId(quiz.id);
+      return {
+        id: quiz.id,
+        title: quiz.title,
+        description: quiz.description,
+        difficulty: quiz.difficulty,
+        sortOrder: quiz.sort_order,
+        status: quiz.status,
+        questionCount: 0, // Will be updated below
+        createdAt: quiz.created_at
+      };
+    });
+
+    // Update question count
+    for (const quiz of list) {
       const questions = await QuestionModel.findByQuizId(quiz.id);
-      quiz.question_count = questions.length;
+      quiz.questionCount = questions.length;
     }
 
-    res.json({ code: 200, message: 'success', data: result });
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get quiz levels error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -96,13 +111,29 @@ router.get('/questions', authAdmin, async (req, res) => {
     const { page, pageSize } = validatePagination(req.query.page, req.query.pageSize);
     const { quizId } = req.query;
 
-    const result = await QuestionModel.findAll({
+    const rawResult = await QuestionModel.findAll({
       page,
       pageSize,
       quiz_id: quizId
     });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform field names to camelCase and convert type number to string
+    const list = rawResult.list.map(q => ({
+      id: q.id,
+      quizId: q.quiz_id,
+      quizTitle: q.quiz_title,
+      title: q.title,
+      type: q.type === 2 ? 'multiple' : 'single',
+      optionA: q.option_a,
+      optionB: q.option_b,
+      optionC: q.option_c,
+      optionD: q.option_d,
+      answer: q.answer,
+      explanation: q.explanation,
+      sortOrder: q.sort_order
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: rawResult.total, page: rawResult.page, pageSize: rawResult.pageSize } });
   } catch (error) {
     console.error('Get questions error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -117,10 +148,13 @@ router.post('/questions', authAdmin, async (req, res) => {
       return res.status(400).json({ code: 400, message: '关卡、题目、选项A、选项B和答案不能为空', data: null });
     }
 
+    // Convert type string to number: 'single' -> 1, 'multiple' -> 2
+    const typeNum = type === 'multiple' ? 2 : 1;
+
     const questionId = await QuestionModel.create({
       quiz_id: quizId,
       title,
-      type,
+      type: typeNum,
       option_a: optionA,
       option_b: optionB,
       option_c: optionC,
@@ -151,10 +185,13 @@ router.put('/questions/:id', authAdmin, async (req, res) => {
       return res.status(404).json({ code: 404, message: '题目不存在', data: null });
     }
 
+    // Convert type string to number: 'single' -> 1, 'multiple' -> 2
+    const typeNum = type === 'multiple' ? 2 : (type === 'single' ? 1 : type);
+
     await QuestionModel.update(id, {
       quiz_id: quizId,
       title,
-      type,
+      type: typeNum,
       option_a: optionA,
       option_b: optionB,
       option_c: optionC,

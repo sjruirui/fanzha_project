@@ -45,7 +45,23 @@ router.get('/:id', async (req, res) => {
     // Increment views
     await AntifraudModel.incrementViews(id);
 
-    res.json({ code: 200, message: 'success', data: { news_detail: news } });
+    // Transform to camelCase
+    const result = {
+      id: news.id,
+      title: news.title,
+      summary: news.summary,
+      cover: news.cover,
+      content: news.content,
+      type: news.type,
+      tags: news.tags,
+      author: news.author,
+      views: news.views,
+      status: news.status,
+      createdAt: news.created_at,
+      publishedAt: news.published_at
+    };
+
+    res.json({ code: 200, message: 'success', data: result });
   } catch (error) {
     console.error('Get news detail error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
@@ -68,7 +84,18 @@ router.get('/:id/related', async (req, res) => {
 
     const related = await AntifraudModel.getRelated(id, news.type, 5);
 
-    res.json({ code: 200, message: 'success', data: { related_news: related } });
+    // Transform to camelCase
+    const list = related.map(item => ({
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      cover: item.cover,
+      type: item.type,
+      views: item.views,
+      createdAt: item.created_at
+    }));
+
+    res.json({ code: 200, message: 'success', data: list });
   } catch (error) {
     console.error('Get related news error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });

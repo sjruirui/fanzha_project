@@ -7,7 +7,27 @@ export const communityApi = {
   },
 
   getPostDetail(id: number) {
-    return request.get<Post>(`/user/community/posts/${id}`)
+    return request.get<{ post_detail: Post }>(`/user/community/posts/${id}`).then(res => {
+      const post = res.post_detail
+      if (post) {
+        // Transform snake_case fields to camelCase
+        return {
+          ...post,
+          userId: post.user_id,
+          categoryId: post.category_id,
+          categoryName: post.category_name,
+          likes: post.likes_count,
+          comments: post.comments_count,
+          author: {
+            id: post.user_id,
+            nickname: post.author_nickname,
+            avatar: post.author_avatar
+          },
+          createdAt: post.created_at
+        } as Post
+      }
+      return null as unknown as Post
+    })
   },
 
   createPost(data: { categoryId: number; title: string; summary: string; cover: string; content: string; tags: string }) {
@@ -23,6 +43,6 @@ export const communityApi = {
   },
 
   getCategories() {
-    return request.get<Category[]>('/user/community/categories')
+    return request.get<{ categories: Category[] }>('/user/community/categories').then(res => res.categories)
   }
 }

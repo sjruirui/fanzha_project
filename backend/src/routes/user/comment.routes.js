@@ -22,7 +22,41 @@ router.get('/', async (req, res) => {
 
     const result = await CommentModel.findByTarget(targetType, targetId, { page, pageSize });
 
-    res.json({ code: 200, message: 'success', data: result });
+    // Transform field names to camelCase
+    const list = result.list.map(comment => ({
+      id: comment.id,
+      userId: comment.user_id,
+      targetType: comment.target_type,
+      targetId: comment.target_id,
+      parentId: comment.parent_id,
+      replyToUserId: comment.reply_to_user_id,
+      replyToUsername: comment.reply_to_nickname || comment.reply_to_username,
+      content: comment.content,
+      createdAt: comment.created_at,
+      user: {
+        id: comment.user_id,
+        nickname: comment.nickname,
+        avatar: comment.avatar
+      },
+      replies: comment.replies?.map(reply => ({
+        id: reply.id,
+        userId: reply.user_id,
+        targetType: reply.target_type,
+        targetId: reply.target_id,
+        parentId: reply.parent_id,
+        replyToUserId: reply.reply_to_user_id,
+        replyToUsername: reply.reply_to_nickname || reply.reply_to_username,
+        content: reply.content,
+        createdAt: reply.created_at,
+        user: {
+          id: reply.user_id,
+          nickname: reply.nickname,
+          avatar: reply.avatar
+        }
+      })) || []
+    }));
+
+    res.json({ code: 200, message: 'success', data: { list, total: result.total, page: result.page, pageSize: result.pageSize } });
   } catch (error) {
     console.error('Get comments error:', error);
     res.status(500).json({ code: 500, message: '服务器错误', data: null });
