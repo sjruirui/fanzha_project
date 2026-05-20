@@ -49,10 +49,13 @@ class AIMessageModel {
 
   static async findBySessionId(session_id) {
     const [rows] = await db.execute(
-      'SELECT * FROM ai_message WHERE session_id = ? ORDER BY created_at ASC',
+      'SELECT id, session_id, role, content, created_at FROM ai_message WHERE session_id = ? ORDER BY created_at ASC',
       [session_id]
     );
-    return rows;
+    return rows.map(row => ({
+      ...row,
+      role: row.role // 1=user, 2=assistant
+    }));
   }
 
   static async deleteBySessionId(session_id) {

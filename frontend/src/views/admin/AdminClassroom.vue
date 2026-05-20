@@ -5,6 +5,8 @@ import { Search, Plus, Edit, Delete, VideoPlay, ArrowRight } from '@element-plus
 import { adminClassroomApi } from '@/api/admin/classroom'
 import type { Chapter, Lesson } from '@/types'
 import dayjs from 'dayjs'
+import ImageUpload from '@/components/common/ImageUpload.vue'
+import VideoUpload from '@/components/common/VideoUpload.vue'
 
 const chapters = ref<Chapter[]>([])
 const lessons = ref<Lesson[]>([])
@@ -52,7 +54,7 @@ const chapterRules = {
 const lessonRules = {
   chapterId: [{ required: true, message: '请选择章节', trigger: 'change' }],
   title: [{ required: true, message: '请输入课时标题', trigger: 'blur' }],
-  videoUrl: [{ required: true, message: '请输入视频URL', trigger: 'blur' }]
+  videoUrl: [{ required: true, message: '请上传视频', trigger: 'change' }]
 }
 
 async function fetchChapters() {
@@ -272,7 +274,7 @@ onMounted(() => {
         </el-table>
 
         <div class="pagination">
-          <el-pagination v-model:current-page="pageChapters" :page-size="pageSize" :total="totalChapters" layout="prev, pager, next" small @current-change="handleChapterPageChange" />
+          <el-pagination v-model:current-page="pageChapters" :page-size="pageSize" :total="totalChapters" layout="prev, pager, next" size="small" @current-change="handleChapterPageChange" />
         </div>
       </div>
 
@@ -303,7 +305,7 @@ onMounted(() => {
         </el-table>
 
         <div class="pagination">
-          <el-pagination v-model:current-page="pageLessons" :page-size="pageSize" :total="totalLessons" layout="prev, pager, next" small @current-change="handleLessonsPageChange" />
+          <el-pagination v-model:current-page="pageLessons" :page-size="pageSize" :total="totalLessons" layout="prev, pager, next" size="small" @current-change="handleLessonsPageChange" />
         </div>
       </div>
     </div>
@@ -318,7 +320,7 @@ onMounted(() => {
           <el-input v-model="chapterForm.summary" type="textarea" :rows="2" placeholder="请输入简介" />
         </el-form-item>
         <el-form-item label="封面">
-          <el-input v-model="chapterForm.cover" placeholder="请输入封面图片URL" />
+          <ImageUpload v-model="chapterForm.cover" />
         </el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="chapterForm.sortOrder" :min="0" />
@@ -345,10 +347,10 @@ onMounted(() => {
           <el-input v-model="lessonForm.summary" type="textarea" :rows="2" placeholder="请输入简介" />
         </el-form-item>
         <el-form-item label="封面">
-          <el-input v-model="lessonForm.cover" placeholder="请输入封面图片URL" />
+          <ImageUpload v-model="lessonForm.cover" />
         </el-form-item>
-        <el-form-item label="视频URL" prop="videoUrl">
-          <el-input v-model="lessonForm.videoUrl" placeholder="请输入视频URL" />
+        <el-form-item label="视频" prop="videoUrl">
+          <VideoUpload v-model="lessonForm.videoUrl" />
         </el-form-item>
         <el-form-item label="时长(秒)">
           <el-input-number v-model="lessonForm.duration" :min="0" />

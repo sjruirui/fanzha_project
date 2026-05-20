@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { newsApi } from '@/api/user/news'
+import SkeletonCard from '@/components/common/SkeletonCard.vue'
 import type { News } from '@/types'
 
 const route = useRoute()
@@ -15,12 +16,12 @@ const page = ref(1)
 const pageSize = ref(12)
 
 const types = [
-  { label: '全部', value: '' },
+  { label: '全部', value: 0 },
   { label: '骗局曝光', value: 'expose' },
   { label: '新闻动态', value: 'news' },
   { label: '案例剖析', value: 'case' }
 ]
-const activeType = ref('')
+const activeType = ref<number | string>(0)
 const keyword = ref('')
 
 async function fetchNews() {
@@ -29,7 +30,7 @@ async function fetchNews() {
     const res = await newsApi.getList({
       page: page.value,
       pageSize: pageSize.value,
-      type: activeType.value,
+      type: activeType.value || undefined,
       keyword: keyword.value
     })
     newsList.value = res.list
@@ -41,7 +42,7 @@ async function fetchNews() {
   }
 }
 
-function handleTypeChange(type: string) {
+function handleTypeChange(type: number | string) {
   activeType.value = type
   page.value = 1
   fetchNews()
@@ -116,8 +117,11 @@ onMounted(() => {
     </div>
 
     <!-- News List -->
-    <div v-loading="loading" class="news-list">
-      <div v-if="newsList.length === 0 && !loading" class="empty-state">
+    <div class="news-list">
+      <!-- 骨架屏 -->
+      <SkeletonCard v-if="loading" :count="6" :cover-height="180" />
+      <!-- 内容 -->
+      <div v-else-if="newsList.length === 0" class="empty-state">
         <el-empty description="暂无资讯" />
       </div>
       <div v-else class="news-grid">
@@ -128,7 +132,7 @@ onMounted(() => {
           @click="goToDetail(news.id)"
         >
           <div class="news-cover">
-            <img :src="news.cover || '/placeholder.jpg'" :alt="news.title" />
+            <img v-lazy="news.cover || '/placeholder.jpg'" :alt="news.title" />
             <el-tag v-if="news.type" class="news-type" size="small">
               {{ types.find(t => t.value === news.type)?.label || news.type }}
             </el-tag>

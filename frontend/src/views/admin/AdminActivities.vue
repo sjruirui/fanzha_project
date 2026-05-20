@@ -7,6 +7,7 @@ import type { Activity } from '@/types'
 import dayjs from 'dayjs'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import '@wangeditor/editor/dist/css/style.css'
+import ImageUpload from '@/components/common/ImageUpload.vue'
 
 const activities = ref<Activity[]>([])
 const loading = ref(false)
@@ -277,7 +278,7 @@ onMounted(() => {
           <el-input v-model="form.summary" type="textarea" :rows="2" placeholder="请输入简介" />
         </el-form-item>
         <el-form-item label="封面">
-          <el-input v-model="form.cover" placeholder="请输入封面图片URL" />
+          <ImageUpload v-model="form.cover" />
         </el-form-item>
         <el-form-item label="内容" prop="content">
           <div style="border: 1px solid #ccc; width: 100%">

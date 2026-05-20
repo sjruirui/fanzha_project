@@ -1,0 +1,32 @@
+VideoUpload.vue:83 Upload error: AxiosError: Network Error
+    at XMLHttpRequest.handleError (xhr.js:123:21)
+handleUpload @ VideoUpload.vue:83
+await in handleUpload
+(匿名) @ upload-content.vue_vue_type_script_setup_true_lang.mjs:105
+await in (匿名)
+(匿名) @ upload-content.vue_vue_type_script_setup_true_lang.mjs:70
+await in (匿名)
+(匿名) @ upload-content.vue_vue_type_script_setup_true_lang.mjs:46
+(匿名) @ upload-content.vue_vue_type_script_setup_true_lang.mjs:112
+callWithErrorHandling @ runtime-core.esm-bundler.js:199
+callWithAsyncErrorHandling @ runtime-core.esm-bundler.js:206
+(匿名) @ runtime-dom.esm-bundler.js:745
+VideoUpload.vue:64  POST http://localhost:5173/api/upload/video/chunk net::ERR_CONNECTION_RESET
+dispatchXhrRequest @ xhr.js:224
+(匿名) @ xhr.js:16
+dispatchRequest @ dispatchRequest.js:48
+_request @ Axios.js:218
+request @ Axios.js:41
+httpMethod @ Axios.js:257
+wrap @ bind.js:12
+handleUpload @ VideoUpload.vue:64
+await in handleUpload
+(匿名) @ upload-content.vue_vue_type_script_setup_true_lang.mjs:105
+await in (匿名)
+(匿名) @ upload-content.vue_vue_type_script_setup_true_lang.mjs:70
+await in (匿名)
+(匿名) @ upload-content.vue_vue_type_script_setup_true_lang.mjs:46
+(匿名) @ upload-content.vue_vue_type_script_setup_true_lang.mjs:112
+callWithErrorHandling @ runtime-core.esm-bundler.js:199
+callWithAsyncErrorHandling @ runtime-core.esm-bundler.js:206
+(匿名) @ runtime-dom.esm-bundler.js:745

@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus, Search, View, ChatDotRound, Star } from '@element-plus/icons-vue'
 import { communityApi } from '@/api/user/community'
+import SkeletonList from '@/components/common/SkeletonList.vue'
 import type { Post, Category } from '@/types'
 
 const router = useRouter()
@@ -14,7 +15,7 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
 
-const activeCategory = ref<number | undefined>()
+const activeCategory = ref<number>(0)
 const keyword = ref('')
 
 async function fetchCategories() {
@@ -31,7 +32,7 @@ async function fetchPosts() {
     const res = await communityApi.getPosts({
       page: page.value,
       pageSize: pageSize.value,
-      categoryId: activeCategory.value,
+      categoryId: activeCategory.value || undefined,
       keyword: keyword.value
     })
     posts.value = res.list
@@ -89,7 +90,7 @@ onMounted(() => {
     <div class="filter-section card">
       <div class="category-tabs">
         <el-radio-group v-model="activeCategory" size="small">
-          <el-radio-button :value="undefined">全部</el-radio-button>
+          <el-radio-button :value="0">全部</el-radio-button>
           <el-radio-button
             v-for="cat in categories"
             :key="cat.id"
@@ -117,8 +118,11 @@ onMounted(() => {
     </div>
 
     <!-- Post List -->
-    <div v-loading="loading" class="post-list">
-      <div v-if="posts.length === 0 && !loading" class="empty-state">
+    <div class="post-list">
+      <!-- 骨架屏 -->
+      <SkeletonList v-if="loading" :count="5" :show-avatar="true" />
+      <!-- 内容 -->
+      <div v-else-if="posts.length === 0" class="empty-state">
         <el-empty description="暂无帖子" />
       </div>
       <div v-else class="posts">
@@ -129,7 +133,7 @@ onMounted(() => {
           @click="goToDetail(post.id)"
         >
           <div v-if="post.cover" class="post-cover">
-            <img :src="post.cover" :alt="post.title" />
+            <img v-lazy="post.cover" :alt="post.title" />
           </div>
           <div class="post-content">
             <div class="post-header">

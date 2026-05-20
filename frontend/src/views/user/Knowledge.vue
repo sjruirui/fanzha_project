@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { knowledgeApi } from '@/api/user/knowledge'
+import SkeletonCard from '@/components/common/SkeletonCard.vue'
 import type { Knowledge } from '@/types'
 
 const route = useRoute()
@@ -15,7 +16,7 @@ const page = ref(1)
 const pageSize = ref(12)
 
 const types = [
-  { label: '全部', value: '' },
+  { label: '全部', value: 0 },
   { label: '电信诈骗', value: '电信诈骗' },
   { label: '网络诈骗', value: '网络诈骗' },
   { label: '金融诈骗', value: '金融诈骗' },
@@ -23,7 +24,7 @@ const types = [
 ]
 
 const targetGroups = [
-  { label: '全部人群', value: '' },
+  { label: '全部人群', value: 0 },
   { label: '老年人', value: '老年人' },
   { label: '青少年', value: '青少年' },
   { label: '大学生', value: '大学生' },
@@ -31,8 +32,8 @@ const targetGroups = [
   { label: '全体', value: '全体' }
 ]
 
-const activeType = ref('')
-const activeTarget = ref('')
+const activeType = ref<number | string>(0)
+const activeTarget = ref<number | string>(0)
 const keyword = ref('')
 
 function getImageUrl(path: string | undefined): string {
@@ -47,8 +48,8 @@ async function fetchKnowledge() {
     const res = await knowledgeApi.getList({
       page: page.value,
       pageSize: pageSize.value,
-      type: activeType.value,
-      targetGroup: activeTarget.value,
+      type: activeType.value || undefined,
+      targetGroup: activeTarget.value || undefined,
       keyword: keyword.value
     })
     knowledgeList.value = res.list
@@ -129,8 +130,11 @@ onMounted(() => {
     </div>
 
     <!-- Knowledge List -->
-    <div v-loading="loading" class="knowledge-list">
-      <div v-if="knowledgeList.length === 0 && !loading" class="empty-state">
+    <div class="knowledge-list">
+      <!-- 骨架屏 -->
+      <SkeletonCard v-if="loading" :count="6" :cover-height="160" />
+      <!-- 内容 -->
+      <div v-else-if="knowledgeList.length === 0" class="empty-state">
         <el-empty description="暂无知识" />
       </div>
       <div v-else class="knowledge-grid">
@@ -141,7 +145,7 @@ onMounted(() => {
           @click="goToDetail(item.id)"
         >
           <div class="knowledge-cover">
-            <img :src="getImageUrl(item.cover)" :alt="item.title" />
+            <img v-lazy="getImageUrl(item.cover)" :alt="item.title" />
           </div>
           <div class="knowledge-info">
             <div class="knowledge-title">{{ item.title }}</div>

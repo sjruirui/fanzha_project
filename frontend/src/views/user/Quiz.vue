@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { CircleCheck, Lock } from '@element-plus/icons-vue'
 import { quizApi } from '@/api/user/quiz'
 import type { QuizLevel } from '@/types'
 

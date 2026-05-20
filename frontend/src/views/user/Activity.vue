@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, Calendar, Location, User, View } from '@element-plus/icons-vue'
 import { activityApi } from '@/api/user/activity'
+import SkeletonCard from '@/components/common/SkeletonCard.vue'
 import type { Activity } from '@/types'
 import dayjs from 'dayjs'
 
@@ -15,11 +16,11 @@ const page = ref(1)
 const pageSize = ref(12)
 
 const forms = [
-  { label: '全部', value: '' },
+  { label: '全部', value: 0 },
   { label: '线上活动', value: 'online' },
   { label: '线下活动', value: 'offline' }
 ]
-const activeForm = ref('')
+const activeForm = ref<number | string>(0)
 const keyword = ref('')
 
 async function fetchActivities() {
@@ -28,7 +29,7 @@ async function fetchActivities() {
     const res = await activityApi.getList({
       page: page.value,
       pageSize: pageSize.value,
-      form: activeForm.value,
+      form: activeForm.value || undefined,
       keyword: keyword.value
     })
     activities.value = res.list
@@ -102,8 +103,11 @@ onMounted(() => {
     </div>
 
     <!-- Activity List -->
-    <div v-loading="loading" class="activity-list">
-      <div v-if="activities.length === 0 && !loading" class="empty-state">
+    <div class="activity-list">
+      <!-- 骨架屏 -->
+      <SkeletonCard v-if="loading" :count="6" :cover-height="160" />
+      <!-- 内容 -->
+      <div v-else-if="activities.length === 0" class="empty-state">
         <el-empty description="暂无活动" />
       </div>
       <div v-else class="activity-grid">
@@ -114,7 +118,7 @@ onMounted(() => {
           @click="goToDetail(activity.id)"
         >
           <div class="activity-cover">
-            <img :src="activity.cover || '/placeholder.jpg'" :alt="activity.title" />
+            <img v-lazy="activity.cover || '/placeholder.jpg'" :alt="activity.title" />
             <div class="activity-form">
               <el-tag :type="activity.form === 'online' ? 'success' : 'warning'" size="small">
                 {{ activity.form === 'online' ? '线上' : '线下' }}

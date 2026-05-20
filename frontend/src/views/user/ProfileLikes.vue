@@ -12,10 +12,10 @@ const loading = ref(false)
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(10)
-const activeType = ref('')
+const activeType = ref<number | string>(0)
 
 const types = [
-  { label: '全部', value: '' },
+  { label: '全部', value: 0 },
   { label: '帖子', value: 'post' },
   { label: '活动', value: 'activity' }
 ]

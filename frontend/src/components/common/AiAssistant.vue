@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ChatDotRound, Delete, Close } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
@@ -17,6 +17,7 @@ const messages = ref<AiMessage[]>([])
 const inputMessage = ref('')
 const loading = ref(false)
 const eventSource = ref<EventSource | null>(null)
+const messagesContainer = ref<HTMLElement | null>(null)
 
 const scenarios = [
   { key: 'gongjia', name: '冒充公检法', icon: '👮' },
@@ -41,6 +42,15 @@ async function initSession() {
     const res = await aiApi.createSession({ mode: chatMode.value })
     sessionId.value = res.sessionId
     messages.value = []
+    // Add welcome message for chat mode
+    if (chatMode.value === 'chat') {
+      messages.value.push({
+        id: Date.now(),
+        role: 'assistant',
+        content: '您好！我是AI反诈助手，可以帮助您识别和防范各类诈骗行为。请问有什么可以帮助您的？',
+        createdAt: new Date().toISOString()
+      })
+    }
   } catch {
     ElMessage.error('创建会话失败')
   }
@@ -56,14 +66,67 @@ async function selectScenario(scenario: string) {
     const res = await aiApi.createSession({ mode: 'scenario', scenario })
     sessionId.value = res.sessionId
     messages.value = []
-    // Add system message for scenario
+    // Add system message for scenario - AI will start the conversation
+    loading.value = true
     messages.value.push({
       id: Date.now(),
       role: 'assistant',
-      content: `您已进入"${scenarios.find(s => s.key === scenario)?.name || scenario}"情景模拟模式。我将扮演诈骗者，尝试对您实施诈骗。请保持警惕，识别诈骗手法。开始对话吧！`,
+      content: '',
       createdAt: new Date().toISOString()
     })
-  } catch {
+
+    // Send initial request to let AI start the scenario
+    const token = localStorage.getItem('token')
+    const url = `/api/user/ai/chat?sessionId=${encodeURIComponent(sessionId.value)}&content=${encodeURIComponent('开始情景模拟')}`
+
+    eventSource.value = new EventSource(url)
+    // Add authorization header via query param for SSE (since EventSource doesn't support headers)
+    // Actually we need to use fetch for SSE with headers, let's use a workaround
+
+    // Close this and use fetch-based SSE
+    eventSource.value.close()
+
+    // Use fetch with Authorization header
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+
+    if (reader) {
+      let assistantMessage = messages.value[messages.value.length - 1]
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n').filter(line => line.trim())
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') continue
+            try {
+              const parsed = JSON.parse(data)
+              if (parsed.content) {
+                assistantMessage.content += parsed.content
+              }
+            } catch {
+              // Ignore parse errors
+            }
+          }
+        }
+      }
+    }
+
+    loading.value = false
+    scrollToBottom()
+  } catch (error) {
+    loading.value = false
+    console.error('Scenario error:', error)
     ElMessage.error('创建情景会话失败')
   }
 }
@@ -82,51 +145,83 @@ async function sendMessage() {
     createdAt: new Date().toISOString()
   })
 
+  scrollToBottom()
   loading.value = true
 
+  // Add placeholder for assistant message
+  const assistantMessage: AiMessage = {
+    id: Date.now() + 1,
+    role: 'assistant',
+    content: '',
+    createdAt: new Date().toISOString()
+  }
+  messages.value.push(assistantMessage)
+
   try {
-    // Use SSE for streaming response
+    const token = localStorage.getItem('token')
     const url = `/api/user/ai/chat?sessionId=${encodeURIComponent(sessionId.value)}&content=${encodeURIComponent(content)}`
 
-    eventSource.value = new EventSource(url, { withCredentials: true })
-
-    let assistantMessage: AiMessage = {
-      id: Date.now() + 1,
-      role: 'assistant',
-      content: '',
-      createdAt: new Date().toISOString()
-    }
-    messages.value.push(assistantMessage)
-
-    eventSource.value.onmessage = (event) => {
-      const data = event.data
-      if (data === '[DONE]') {
-        eventSource.value?.close()
-        loading.value = false
-        return
+    // Use fetch with Authorization header for SSE
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-      try {
-        const parsed = JSON.parse(data)
-        if (parsed.content) {
-          assistantMessage.content += parsed.content
+    })
+
+    if (!response.ok) {
+      throw new Error('Request failed')
+    }
+
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+
+    if (reader) {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n').filter(line => line.trim())
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') continue
+            try {
+              const parsed = JSON.parse(data)
+              if (parsed.content) {
+                assistantMessage.content += parsed.content
+                scrollToBottom()
+              }
+              if (parsed.error) {
+                assistantMessage.content = parsed.error
+              }
+            } catch {
+              // Ignore parse errors
+            }
+          }
         }
-      } catch {
-        // Plain text
-        assistantMessage.content += data
       }
     }
 
-    eventSource.value.onerror = () => {
-      eventSource.value?.close()
-      loading.value = false
-      if (!assistantMessage.content) {
-        assistantMessage.content = '抱歉，发生了错误，请稍后重试。'
-      }
+    if (!assistantMessage.content) {
+      assistantMessage.content = '抱歉，发生了错误，请稍后重试。'
     }
-  } catch {
+  } catch (error) {
+    console.error('Send message error:', error)
+    assistantMessage.content = '发送消息失败，请检查网络连接后重试。'
+  } finally {
     loading.value = false
-    ElMessage.error('发送消息失败')
+    scrollToBottom()
   }
+}
+
+function scrollToBottom() {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+    }
+  })
 }
 
 async function clearChat() {
@@ -153,20 +248,22 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
+let shakeInterval: number
+
 onMounted(() => {
   // Add shake animation periodically
-  const shakeInterval = setInterval(() => {
+  shakeInterval = setInterval(() => {
     if (!showChat.value) {
       const btn = document.querySelector('.ai-float-btn')
       btn?.classList.add('shake')
       setTimeout(() => btn?.classList.remove('shake'), 500)
     }
   }, 30000)
+})
 
-  onUnmounted(() => {
-    clearInterval(shakeInterval)
-    eventSource.value?.close()
-  })
+onUnmounted(() => {
+  clearInterval(shakeInterval)
+  eventSource.value?.close()
 })
 </script>
 

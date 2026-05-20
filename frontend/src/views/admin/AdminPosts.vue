@@ -6,6 +6,7 @@ import { adminPostApi } from '@/api/admin/post'
 import { adminCategoryApi } from '@/api/admin/category'
 import type { Post, Category } from '@/types'
 import dayjs from 'dayjs'
+import ImageUpload from '@/components/common/ImageUpload.vue'
 
 const posts = ref<Post[]>([])
 const categories = ref<Category[]>([])
@@ -235,7 +236,7 @@ onMounted(() => {
           <el-input v-model="form.summary" type="textarea" :rows="2" placeholder="请输入简介" />
         </el-form-item>
         <el-form-item label="封面">
-          <el-input v-model="form.cover" placeholder="请输入封面图片URL" />
+          <ImageUpload v-model="form.cover" />
         </el-form-item>
         <el-form-item label="标签">
           <el-input v-model="form.tags" placeholder="多个标签用逗号分隔" />

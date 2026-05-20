@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { VideoPlay } from '@element-plus/icons-vue'
 import { classroomApi } from '@/api/user/classroom'
+import SkeletonCard from '@/components/common/SkeletonCard.vue'
 import type { Chapter } from '@/types'
 
 const router = useRouter()
@@ -38,11 +39,14 @@ onMounted(() => {
     </div>
 
     <!-- Chapter List -->
-    <div v-loading="loading" class="chapter-list">
-      <div v-if="chapters.length === 0 && !loading" class="empty-state">
+    <div class="chapter-list">
+      <!-- 骨架屏 -->
+      <SkeletonCard v-if="loading" :count="6" :cover-height="180" />
+      <!-- 内容 -->
+      <div v-else-if="chapters.length === 0" class="empty-state">
         <el-empty description="暂无课程章节" />
       </div>
-      <div v-if="chapters.length > 0" class="chapter-grid">
+      <div v-else class="chapter-grid">
         <div
           v-for="chapter in chapters"
           :key="chapter.id"
@@ -50,7 +54,7 @@ onMounted(() => {
           @click="goToChapter(chapter.id)"
         >
           <div class="chapter-cover">
-            <img :src="chapter.cover || '/placeholder.jpg'" :alt="chapter.title" />
+            <img v-lazy="chapter.cover || '/placeholder.jpg'" :alt="chapter.title" />
             <div class="lesson-count">
               <el-icon><VideoPlay /></el-icon>
               {{ chapter.lessonCount }} 课时

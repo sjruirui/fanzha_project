@@ -228,19 +228,101 @@ npm run dev
 - 用户名：`admin`
 - 密码：`admin123`
 
+### 六、性能优化实现 (2024-05-14)
+
+完成了以下性能优化：
+
+#### 1. Gzip 压缩
+- 使用 `vite-plugin-compression` 插件
+- 配置：大于 10KB 的文件才压缩，保留原文件
+- 压缩效果：
+  - element-plus.js: 975KB → 314KB (gzip)
+  - vue-vendor.js: 274KB → 70KB (gzip)
+  - editor.js: 796KB → 272KB (gzip)
+
+#### 2. 代码分割
+- 使用 Vite 8 的 `manualChunks` 函数配置
+- 分离策略：
+  - `element-plus` - Element Plus 组件库
+  - `vue-vendor` - Vue、Pinia、Vue Router
+  - `editor` - WangEditor 富文本编辑器
+
+#### 3. 图片懒加载
+- 创建自定义指令 `v-lazy`
+- 使用 Intersection Observer API 检测元素进入视口
+- 支持加载状态样式切换（lazy-loading、lazy-loaded、lazy-error）
+- 应用于首页、资讯、知识、活动、社区、课堂等页面
+
+#### 4. 骨架屏
+- 创建通用骨架屏组件：
+  - `Skeleton.vue` - 基础骨架
+  - `SkeletonCard.vue` - 卡片网格骨架
+  - `SkeletonList.vue` - 列表骨架（带头像）
+- 应用于列表页面加载状态
+
+### 七、Element Plus 兼容性修复 (2024-05-14)
+
+修复 Element Plus 3.0 API 弃用警告：
+
+#### 1. el-radio-button value 属性
+- 问题：`label` 属性作为 value 使用将在 3.0.0 弃用
+- 修复：将空字符串 `''` 或 `undefined` 值改为数字 `0`
+- 影响文件：Community.vue、Activity.vue、Knowledge.vue、News.vue、ProfileLikes.vue、ProfileCollects.vue、ProfileComments.vue
+
+#### 2. el-pagination size 属性
+- 问题：`small` 属性将在 3.0.0 弃用
+- 修复：将 `small` 改为 `size="small"`
+- 影响文件：AdminClassroom.vue、AdminQuiz.vue、AdminSignups.vue
+
+### 八、文件上传功能改进 (2024-05-18)
+
+完成了管理端文件上传功能的改进：
+
+#### 1. 图片上传组件
+- 创建 `ImageUpload.vue` 组件
+- 支持点击选择文件上传
+- 支持图片预览和删除
+- 文件大小限制：5MB
+- 支持格式：JPG、PNG、GIF、WEBP
+
+#### 2. 视频分片上传组件
+- 创建 `VideoUpload.vue` 组件
+- 实现大文件分片上传（5MB每片）
+- 显示上传进度百分比
+- 支持视频预览和删除
+- 文件大小限制：500MB
+- 支持格式：MP4、WEBM、OGG
+
+#### 3. 后端分片上传API
+- 新增 `/api/upload/video/init` - 初始化分片上传
+- 新增 `/api/upload/video/chunk` - 上传单个分片
+- 新增 `/api/upload/video/complete` - 合并分片完成上传
+- 新增 `/api/upload/video/cancel` - 取消上传清理临时文件
+- 分片临时存储在 `uploads/chunks` 目录
+
+#### 4. 管理端页面改进
+- AdminNews.vue - 封面改为图片上传组件
+- AdminKnowledge.vue - 封面改为图片上传组件
+- AdminActivities.vue - 封面改为图片上传组件
+- AdminPosts.vue - 封面改为图片上传组件
+- AdminClassroom.vue - 章节封面、课时封面改为图片上传，视频改为分片上传组件
+
 ## 待完成功能
 
-### AI 助手功能
-- AI 反诈助手组件已创建，但功能待完善
-- 智能问答模式
-- 情景模拟模式
+### ~~AI 助手功能~~ ✅ 已完成 (2024-05-14)
+- ~~AI 反诈助手组件已创建，但功能待完善~~
+- ✅ 智能问答模式 - 集成通义千问大模型，支持流式响应
+- ✅ 情景模拟模式 - 支持冒充公检法、刷单返利、杀猪盘、虚假网贷四种场景
+- ✅ 对话历史上下文保持 - 自动发送最近10条历史消息
+- ✅ SSE流式传输 - 使用fetch API实现带认证头的流式响应
 
 ### 待优化项
-1. 图片懒加载
-2. 骨架屏加载效果
-3. 性能优化（代码分割、CDN）
-4. 单元测试
-5. E2E测试
+1. ~~图片懒加载~~ ✅ 已完成
+2. ~~骨架屏加载效果~~ ✅ 已完成
+3. ~~性能优化（代码分割、Gzip压缩）~~ ✅ 已完成
+4. CDN 加速
+5. 单元测试
+6. E2E测试
 
 ## 文件清单
 
@@ -268,6 +350,9 @@ frontend/
 ├── src/
 │   ├── main.ts
 │   ├── App.vue
+│   ├── directives/
+│   │   ├── index.ts
+│   │   └── lazyLoad.ts
 │   ├── api/
 │   │   ├── request.ts
 │   │   ├── adminRequest.ts
@@ -281,7 +366,12 @@ frontend/
 │   │   │   └── AdminLayout.vue
 │   │   └── common/
 │   │       ├── LoginModal.vue
-│   │       └── AiAssistant.vue
+│   │       ├── AiAssistant.vue
+│   │       ├── Skeleton.vue
+│   │       ├── SkeletonCard.vue
+│   │       ├── SkeletonList.vue
+│   │       ├── ImageUpload.vue
+│   │       └── VideoUpload.vue
 │   ├── router/index.ts
 │   ├── stores/
 │   │   ├── user.ts
@@ -295,6 +385,27 @@ frontend/
 ```
 
 ## 更新日志
+
+### 2024-05-18
+- 实现管理端文件上传功能改进
+- 创建 ImageUpload.vue 图片上传组件
+- 创建 VideoUpload.vue 视频分片上传组件
+- 后端实现视频分片上传API（init/chunk/complete/cancel）
+- 修改管理端5个页面使用新的上传组件
+- 支持大视频文件分片上传（最大500MB）
+
+### 2024-05-14
+- 实现性能优化：Gzip压缩、代码分割、图片懒加载、骨架屏
+- 修复 Element Plus 3.0 API 弃用警告
+- 创建自定义懒加载指令 v-lazy
+- 创建骨架屏组件 Skeleton、SkeletonCard、SkeletonList
+- **完善AI反诈助手功能**：
+  - 集成通义千问大模型（OpenAI兼容格式）
+  - 实现SSE流式响应，支持实时对话
+  - 添加对话历史上下文保持（最近10条消息）
+  - 实现智能问答模式（反诈知识咨询）
+  - 实现情景模拟模式（4种典型诈骗场景）
+  - 修复数据库ai_session表mode字段类型（改为varchar）
 
 ### 2024-05-12
 - 完成管理端前端实现（16个页面）
@@ -317,4 +428,4 @@ frontend/
 
 ---
 
-*文档更新时间：2024-05-12*
+*文档更新时间：2024-05-18*

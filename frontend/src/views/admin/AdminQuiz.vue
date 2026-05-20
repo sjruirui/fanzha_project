@@ -268,7 +268,7 @@ onMounted(() => {
         </el-table>
 
         <div class="pagination">
-          <el-pagination v-model:current-page="pageLevels" :page-size="pageSize" :total="totalLevels" layout="prev, pager, next" small @current-change="handleLevelPageChange" />
+          <el-pagination v-model:current-page="pageLevels" :page-size="pageSize" :total="totalLevels" layout="prev, pager, next" size="small" @current-change="handleLevelPageChange" />
         </div>
       </div>
 
@@ -300,7 +300,7 @@ onMounted(() => {
         </el-table>
 
         <div class="pagination">
-          <el-pagination v-model:current-page="pageQuestions" :page-size="pageSize" :total="totalQuestions" layout="prev, pager, next" small @current-change="handleQuestionPageChange" />
+          <el-pagination v-model:current-page="pageQuestions" :page-size="pageSize" :total="totalQuestions" layout="prev, pager, next" size="small" @current-change="handleQuestionPageChange" />
         </div>
       </div>
     </div>

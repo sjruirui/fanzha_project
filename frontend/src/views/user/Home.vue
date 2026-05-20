@@ -5,6 +5,7 @@ import { Document, VideoPlay, EditPen, Warning, ArrowRight, Bell } from '@elemen
 import { ElMessageBox } from 'element-plus'
 import { homeApi } from '@/api/user/home'
 import { noticeApi } from '@/api/user/notice'
+import SkeletonCard from '@/components/common/SkeletonCard.vue'
 import type { Banner, News, Notice } from '@/types'
 
 const router = useRouter()
@@ -109,7 +110,10 @@ function showNoticeDetail(notice: Notice) {
             查看更多 <el-icon><ArrowRight /></el-icon>
           </el-button>
         </div>
-        <div v-loading="loading" class="news-grid">
+        <!-- 骨架屏 -->
+        <SkeletonCard v-if="loading" :count="6" :cover-height="160" />
+        <!-- 内容 -->
+        <div v-else class="news-grid">
           <div
             v-for="news in recommendNews"
             :key="news.id"
@@ -117,7 +121,7 @@ function showNoticeDetail(notice: Notice) {
             @click="router.push(`/news/${news.id}`)"
           >
             <div class="news-cover">
-              <img :src="news.cover || '/placeholder.jpg'" :alt="news.title" />
+              <img v-lazy="news.cover || '/placeholder.jpg'" :alt="news.title" />
             </div>
             <div class="news-info">
               <div class="news-title">{{ news.title }}</div>

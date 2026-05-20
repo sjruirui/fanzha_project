@@ -239,3 +239,18 @@ img {
   text-align: center;
   padding: 40px;
 }
+
+/* Lazy load image styles */
+img.lazy-loading {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+img.lazy-loaded {
+  opacity: 1;
+}
+
+img.lazy-error {
+  opacity: 1;
+  background: #f5f5f5;
+}
